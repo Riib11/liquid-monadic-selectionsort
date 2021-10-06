@@ -1,12 +1,12 @@
-{-@ LIQUID "--compile-spec" @-}
+-- {-@ LIQUID "--compile-spec" @-}
 module Refined.Data.List where
 
-import Prelude hiding (length, minimum, min, all, any, head, tail)
 import Proof
+import Prelude hiding (all, any, length, min, minimum)
 
-{-@ reflect leq @-}
-leq :: Int -> Int -> Bool
-leq x y = x <= y
+{-@ reflect le @-}
+le :: Int -> Int -> Bool
+le x y = x <= y
 
 {-@ reflect eq @-}
 eq :: Int -> Int -> Bool
@@ -14,386 +14,260 @@ eq x y = x == y
 
 -- data List
 
-data List a = Nil | Cons a (List a)
-  deriving (Show)
+data List = Nil | Cons Int List
+  deriving (Show, Eq)
 
 infixr 5 `Cons`
 
 -- List uses length as a termination measure
 {-@ data List [length] @-}
 
-
 -- length
 
 {-@ measure length @-}
-{-@ length :: List a -> {l:Int | 0 <= l} @-}
-length :: List a -> Int
+{-@
+length :: List -> {l:Int | 0 <= l}
+@-}
+length :: List -> Int
 length Nil = 0
 length (Cons x xs) = 1 + length xs
 
+-- hd (head)
 
--- head
-
--- TODO: why can't reflect???
--- {-@ reflect head @-}
+{-@ reflect hd @-}
 {-@
-head :: {xs:List a | 0 < length xs} -> a
+hd :: {xs:List | 0 < length xs} -> Int
 @-}
-head :: List a -> a
-head (Cons x xs) = x
+hd :: List -> Int
+hd (Cons x xs) = x
 
+-- tl (tail)
 
--- tail
-
--- {-@ reflect tail @-}
+{-@ reflect tl @-}
 {-@
-tail :: {xs:List a | 0 < length xs} -> List a
+tl :: {xs:List | 0 < length xs} -> {xs':List | length xs = length xs' + 1}
 @-}
-tail :: List a -> List a
-tail Nil = Nil
-tail (Cons x xs) = xs
+tl :: List -> List
+tl (Cons x xs) = xs
 
 -- index
 
+{-@ automatic-instances index @-}
 {-@ reflect index @-}
 {-@
-index :: {i:Int | 0 <= i} -> {xs:List a | i < length xs} -> a
+index :: xs:List -> {i:Int | inBounds xs i} -> Int
 @-}
-index :: Int -> List a -> a
-index i (Cons x xs) = if i == 0 then x else index (i - 1) xs
+index :: List -> Int -> Int
+index (Cons x xs) i = if i <= 0 then x else index xs (i - 1)
 
+-- The index `i` is in bounds of `xs`
+{-@ inline inBounds @-}
+inBounds :: List -> Int -> Bool
+inBounds xs i = 0 <= i && i < length xs
 
 -- contains
 
 {-@ reflect contains @-}
-contains :: List Int -> Int -> Bool
-contains Nil y = False 
-contains (Cons x xs) y = if x == y then True else contains xs y
-
-{-@ reflect contains' @-}
-contains' :: List Int -> Int -> Bool
-contains' xs y = exists (eq y) xs
-
-{-@ automatic-instances contains_cons @-}
-{-@
-contains_cons :: 
-  x:Int -> xs:List Int ->
-  {y:Int | contains (Cons x xs) y && not (x == y)} ->
-  {contains xs y}
-@-}
-contains_cons :: Int -> List Int -> Int -> Proof
-contains_cons x Nil y = trivial
--- GOAL: if x' == y then True else contains xs y
-contains_cons x (Cons x' xs) y =
-  if x' == y
-    -- GOAL: True
-    then trivial
-    -- GOAL: contains xs y
-    else trivial
-
-
--- minimum
-
-{-@ reflect min @-}
-{-@
-min :: x:Int -> y:Int -> {z:Int | z <= x && z <= y}
-@-}
-min :: Int -> Int -> Int
-min x y = if x <= y then x else y
-
-{-@ reflect minimum @-}
-{-@
-minimum :: {xs:List Int | 0 < length xs} -> Int
-@-}
-minimum :: List Int -> Int
-minimum (Cons x Nil) = x
-minimum (Cons x xs) = min x (minimum xs)
-
--- -- * PASSES
--- {-@ reflect minimum_leq @-}
-{-@ automatic-instances minimum_leq @-}
-{-@
-minimum_leq ::
-  {xs:List Int | 0 < length xs} ->
-  {all (leq (minimum xs)) xs}
-@-}
-minimum_leq :: List Int -> Proof
-minimum_leq (Cons x Nil) = trivial
-minimum_leq (Cons x1 (Cons x2 Nil)) = trivial
-minimum_leq (Cons x1 (Cons x2 xs)) = undefined -- TODO
-  -- let m = minimum (Cons x1 (Cons x2 xs)) in
-  -- if m == x1 then
-  --   -- GOAL: all (leq (min x1 (minimum (Cons x2 xs)))) (Cons x1 (Cons x2 xs))
-  --   -- GOAL: leq x1 (min x1 (minimum (Cons x2 xs))) &&
-  --   --       all (leq (min x1 (minimum (Cons x2 xs)))) (Cons x2 xs)
-  --   trivial
-  -- else 
-  --   undefined
-
--- minimum_leq (Cons x xs) =
---   let m = minimum (Cons x xs) in
---   if x == m then
---     trivial
---   else
---     minimum_leq xs
-
---   if x == y
---     then trivial
---     else unreachable
--- minimum_leq (Cons x xs) y =
---   if x == y
---     then trivial
---     else minimum_leq xs y
-
--- -- -- * PASSES
--- {-@ reflect minimum_leq @-}
--- {-@ automatic-instances minimum_leq @-}
--- {-@
--- minimum_leq ::
---   {xs:List Int | 0 < length xs} -> {y:Int | contains xs y} ->
---   {minimum xs <= y}
--- @-}
--- minimum_leq :: List Int -> Int -> Proof
--- minimum_leq (Cons x Nil) y =
---   if x == y
---     then trivial
---     else unreachable
--- minimum_leq (Cons x xs) y =
---   if x == y
---     then trivial
---     else minimum_leq xs y
-
--- * PASSES
-{-@ reflect minimum_contains @-}
-{-@ automatic-instances minimum_contains @-}
-{-@
-minimum_contains ::
-  {xs:List Int | 0 < length xs} ->
-  {contains xs (minimum xs)}
-@-}
-minimum_contains :: List Int -> Proof
--- GOAL: if x == y then True else contains Nil x
-minimum_contains (Cons x Nil) = trivial
--- GOAL: if x == min x (minimum xs) then True else contains xs (min x (minimum xs))
-minimum_contains (Cons x xs) =
-  if x <= min x (minimum xs)
-    -- GOAL: True
-    then trivial
-    -- GOAL: if x == minimum xs then True else contains xs (minimum xs)
-    else
-      if x == minimum xs
-        then trivial
-        else minimum_contains xs
-
-{-@
-minimum_permuted ::
-  {xs:List Int | 0 < length xs} ->
-  {ys:List Int | permuted xs ys} ->
-  {minimum xs == minimum ys}
-@-}
-minimum_permuted :: List Int -> List Int -> Proof
-minimum_permuted xs ys = undefined -- TODO
-
-
-
--- singleton
-
-{-@ reflect singleton @-}
-singleton :: List Int -> Bool
-singleton Nil = True 
-singleton (Cons x xs) = if contains xs x then False else singleton xs
-
-{-@ automatic-instances singleton_cons @-}
-{-@
-singleton_cons ::
-  x:Int -> {xs:List Int | singleton xs && not (contains xs x)} ->
-  {singleton (Cons x xs)}
-@-}
-singleton_cons :: Int -> List Int -> Proof 
-singleton_cons x xs = trivial
-
-{-@ 
-singleton_snoc ::
-  x:Int -> {xs:List Int | singleton (Cons x xs)} ->
-  {singleton xs}
-@-}
-singleton_snoc :: Int -> List Int -> Proof
-singleton_snoc x xs = undefined
-
-{-@
-singleton_without ::
-  {xs:List Int | 0 < length xs && singleton xs} -> {x:Int | contains xs x} ->
-  {singleton (without xs x)}
-@-}
-singleton_without :: List Int -> Int -> List Int
-singleton_without xs x = undefined
-
-
--- without
-
-{-@ reflect without @-}
-without :: List Int -> Int -> List Int
-without Nil y = Nil
-without (Cons x xs) y = if x == y then xs else Cons x (without xs y)
-
--- {-@
--- without_verified ::
---   {xs:List Int | singleton xs && 0 < length xs} ->
---   {y:Int | contains xs y} ->
---   {xs':List Int | not (contains xs' y) && singleton xs' && length xs' = length xs - 1}
--- @-}
--- without_verified :: List Int -> Int -> List Int
--- without_verified xs y = without xs y
-
-{-@ reflect without_contains'_aux @-}
-{-@
-without_contains'_aux :: 
-  {xs:List Int | singleton xs && 0 < length xs} ->
-  {y:Int | contains xs y} ->
-  Int ->
-  Bool
-@-}
-without_contains'_aux :: List Int -> Int -> Int -> Bool
-without_contains'_aux xs y z = contains (without xs y) z || z == y
-
-{-@ automatic-instances without_contains' @-}
-{-@
-without_contains' ::
-  {xs:List Int | singleton xs && 0 < length xs} ->
-  {y:Int | contains xs y} ->
-  {all (without_contains'_aux xs y) xs}
-@-}
-without_contains' :: List Int -> Int -> Proof
-without_contains' (Cons x Nil) y = trivial
-without_contains' (Cons x xs) y =
-  -- GOAL: all (without_contains'_aux (Cons x xs) y) (Cons x xs)
-  -- GOAL: (contains (without (Cons x xs) y) x || x == y) && all (without_contains'_aux (Cons x xs) y) xs
-  -- GOAL: all (without_contains'_aux (Cons x xs) y) xs
-  undefined -- TODO
-
-
--- {-@ automatic-instances without_contains @-}
--- {-@
--- without_contains ::
---   {xs:List Int | singleton xs && 0 < length xs} ->
---   {y:Int | contains xs y} -> {z:Int | contains xs z && z /= y} ->
---   {contains (without xs y) z}
--- @-}
--- without_contains :: List Int -> Int -> Int -> Proof
--- without_contains (Cons x Nil) y z =
---   if x == y then
---     trivial
---   else
---     trivial
--- without_contains (Cons x1 (Cons x2 Nil)) y z = 
---   if x1 == y then 
---     if x2 == z
---       then trivial
---       else trivial
---   else
---     if x2 == y then
---       if x1 == z
---         then trivial
---         else trivial
---     else
---       trivial
--- -- GOAL: contains (without (Cons x1 (Cons x2 xs)) y) z
--- without_contains (Cons x1 (Cons x2 xs)) y z =
---   if x1 == y then 
---     if x2 == z then
---       -- GOAL: True
---       trivial
---     else
---       -- GOAL: contains xs z
---       trivial
---   else
---     if x2 == y then
---       -- GOAL: contains (Cons x1 xs) z
---       if x1 == z then 
---         trivial
---       else
---         -- GOAL: contains xs z
---         trivial
---     else
---       -- GOAL: contains (Cons x1 (without xs y)) z
---       if x1 == z then
---         -- GOAL: True 
---         trivial
---       else
---         if x2 == z then
---           trivial
---         else
---           -- GOAL: contains (without xs y) z
---           without_contains xs y z
-
--- * PASSES
-{-@ reflect without_length @-}
-{-@ automatic-instances without_length @-}
-{-@
-without_length ::
-  xs:List Int -> {y:Int | contains xs y} ->
-  {length (without xs y) == length xs - 1}
-@-}
-without_length :: List Int -> Int -> Proof
--- CONTRA: contains Nil y == True
-without_length Nil y = unreachable
-without_length (Cons x xs) y =
-  if x == y
-    -- GOAL: length xs == length xs
-    then ()
-    -- GOAL: length (without xs y) == length xs
-    else without_length xs y
-
--- * PASSES
-{-@ reflect without_not_contains @-}
-{-@ automatic-instances without_not_contains @-}
-{-@
-without_not_contains ::
-  {xs:List Int | singleton xs} -> {y:Int | contains xs y} ->
-  {not (contains (without xs y) y)}
-@-}
-without_not_contains :: List Int -> Int -> Proof
-without_not_contains Nil y = unreachable
-without_not_contains (Cons x xs) y =
-  if x == y
-    -- GOAL: not (contains xs y)
-    then ()
-    -- GOAL: not (contains (without xs y) y)
-    else without_not_contains xs y
-
+contains :: List -> Int -> Bool
+contains xs y = any (eq y) xs
 
 -- all
 
 {-@ reflect all @-}
-all :: (a -> Bool) -> List a -> Bool
-all p Nil = True 
+all :: (Int -> Bool) -> List -> Bool
+all p Nil = True
 all p (Cons x xs) = p x && all p xs
-
 
 -- any
 
 {-@ reflect any @-}
-any :: (a -> Bool) -> List a -> Bool
+any :: (Int -> Bool) -> List -> Bool
 any p Nil = False
 any p (Cons x xs) = p x || any p xs
-
 
 -- exists
 
 {-@ reflect exists @-}
-exists :: (a -> Bool) -> List a -> Bool
-exists p Nil = False 
+exists :: (Int -> Bool) -> List -> Bool
+exists p Nil = False
 exists p (Cons x xs) = p x || exists p xs
 
+-- leAll
+
+{-@ reflect leAll @-}
+leAll :: Int -> List -> Bool
+leAll x xs = all (le x) xs
+
+-- minimumIndex
+
+{-@ automatic-instances minimumIndex @-}
+{-@ reflect minimumIndex @-}
+{-@
+minimumIndex :: {xs:List | length xs > 0} -> {i:Int | inBounds xs i}
+@-}
+minimumIndex :: List -> Int
+minimumIndex (Cons x Nil) = 0
+minimumIndex (Cons x (Cons x' xs)) = if x <= x' then 0 else 1 + minimumIndex (Cons x' xs)
+
+-- swap
+
+-- {-@ reflect swap @-}
+-- {-@
+-- swap ::
+--   {i:Int | inBounds xs i} -> {i:Int | inBounds xs j} ->
+--   {xs:List | 2 < length xs} ->
+--   List
+-- @-}
+-- swap :: Int -> Int -> List -> List
+-- swap i j (Cons x (Cons x' Nil)) =
+
+-- select
+
+{-@ reflect select @-}
+{-@
+select :: {xs:List | 0 < length xs} -> {xs':List | length xs == length xs'}
+@-}
+select :: List -> List
+select (Cons x Nil) = Cons x Nil
+select (Cons x1 (Cons x2 xs)) =
+  if x1 <= x2
+    then
+      let (Cons x' xs') = select (Cons x1 xs)
+       in Cons x' (Cons x2 xs')
+    else
+      let (Cons x' xs') = select (Cons x2 xs)
+       in Cons x' (Cons x2 xs')
+
+-- -- {-@ reflect select_length @-}
+-- {-@ automatic-instances select_length @-}
+-- {-@
+-- select_length ::
+--   {xs:List | 0 < length xs} ->
+--   {length xs == length (select xs)}
+-- @-}
+-- select_length :: List -> Proof
+-- select_length (Cons x Nil) = trivial
+-- -- GOAL: length (Cons x1 (Cons x2 xs)) == length (select (Cons x1 (Cons x2 xs)))
+-- select_length (Cons x1 (Cons x2 xs')) =
+--   if x1 <= x2
+--     then
+--       select_length (Cons x1 xs')
+--         `by` assume_eq (length (select (Cons x1 xs'))) (length (tl (select (Cons x1 xs'))))
+--     else -- `by` tl (select (Cons x1 xs') `by` select_length (Cons x1 xs'))
+
+--       select_length (Cons x2 xs')
+--         `by` tl (select (Cons x2 xs') `by` select_length (Cons x2 xs'))
+
+{-@
+select_leAll ::
+  {xs:List | 0 < length xs} ->
+  {leAll (hd (select xs)) (tl (select xs))}
+@-}
+select_leAll :: List -> Proof
+select_leAll xs = undefined
+
+-- sorted
+
+{-@ reflect sorted @-}
+sorted :: List -> Bool
+sorted Nil = True
+sorted (Cons x xs) = leAll x xs && sorted xs
+
+{-@
+assume
+assume_sorted :: xs:List -> {sorted xs}
+@-}
+assume_sorted :: List -> Proof
+assume_sorted xs = trivial
 
 -- permuted
 
-{-@ reflect permuted @-}
-permuted :: List Int -> List Int -> Bool
-permuted xs ys = all (contains ys) xs
+-- {-@ reflect permuted @-}
+-- permuted :: List -> List -> Bool
+-- permuted xs ys = all (contains ys) xs -- ! won't work because ignores duplicates
 
-{-@ 
-permuted_length :: xs:List Int -> {ys:List Int | permuted xs ys} -> {length xs == length ys}
+{-@ reflect permuted @-}
+{-@
+permuted :: List -> List -> Bool
 @-}
-permuted_length :: List Int -> List Int -> Proof
-permuted_length xs ys = undefined -- TODO
+permuted :: List -> List -> Bool
+permuted xs ys = all (eqCounts xs ys) xs && all (eqCounts xs ys) ys
+
+{-@ reflect eqCounts @-}
+{-@
+eqCounts :: List -> List -> Int -> Bool
+@-}
+eqCounts :: List -> List -> Int -> Bool
+eqCounts xs ys z = count xs z == count ys z
+
+{-@
+assume
+assume_permuted :: xs:List -> ys:List -> {permuted xs ys}
+@-}
+assume_permuted :: List -> List -> Proof
+assume_permuted xs ys = trivial
+
+-- `count xs y` computes the number of times that `y` appears in `xs`.
+{-@ reflect count @-}
+count :: List -> Int -> Int
+count Nil _ = 0
+count (Cons x xs) y = if x == y then 1 + count xs y else count xs y
+
+-- not_permuted_Nil_Cons, not_permuted_Cons_Nil
+
+{-@
+not_permuted_Nil_Cons ::
+  x:Int -> xs:List ->
+  {not (permuted Nil (Cons x xs))}
+@-}
+not_permuted_Nil_Cons :: Int -> List -> Proof
+not_permuted_Nil_Cons x xs = undefined
+
+{-@
+not_permuted_Cons_Nil ::
+  x:Int -> xs:List ->
+  {not (permuted (Cons x xs) Nil)}
+@-}
+not_permuted_Cons_Nil :: Int -> List -> Proof
+not_permuted_Cons_Nil x xs = undefined
+
+-- permuted_length
+
+{-@ automatic-instances permuted_length @-}
+{-@
+permuted_length ::
+  xs:List -> {ys:List | permuted xs ys} ->
+  {length xs == length ys}
+@-}
+permuted_length :: List -> List -> Proof
+permuted_length Nil Nil = trivial
+{-
+permuted Nil (Cons y ys)
+=
+all (eqCounts Nil (Cons y ys)) Nil &&
+all (eqCounts Nil (Cons y ys)) (Cons y ys)
+=
+all (eqCounts Nil (Cons y ys)) (Cons y ys)
+=
+count Nil y == count (Cons y ys) y &&
+all (eqCounts Nil (Cons y ys)) ys
+=
+0 = 1 &&
+all (eqCounts Nil (Cons y ys)) ys
+-}
+permuted_length Nil (Cons y ys) = not_permuted_Nil_Cons y ys
+permuted_length (Cons x xs) Nil = not_permuted_Cons_Nil x xs
+permuted_length (Cons x xs) (Cons y ys) = undefined
+
+-- permuted_leAll
+
+-- {-@ reflect permuted_leAll @-}
+{-@
+permuted_leAll ::
+  x:Int ->
+  {xs:List | leAll x xs} ->
+  {ys:List | permuted xs ys} ->
+  {leAll x ys}
+@-}
+permuted_leAll :: Int -> List -> List -> Proof
+permuted_leAll x xs ys = undefined -- TODO
