@@ -40,3 +40,17 @@ assume_le :: x:Int -> y:Int -> {x <= y}
 @-}
 assume_le :: Int -> Int -> Proof
 assume_le x y = trivial
+
+{-@
+assume
+assume_lt :: x:Int -> y:Int -> {x < y}
+@-}
+assume_lt :: Int -> Int -> Proof
+assume_lt x y = trivial
+
+{-@
+assume
+assume_true :: b:Bool -> {b == True}
+@-}
+assume_true :: Bool -> Proof
+assume_true b = trivial

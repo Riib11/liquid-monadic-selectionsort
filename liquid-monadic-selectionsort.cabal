@@ -28,9 +28,11 @@ library
       Proof
       Refined.Data.Bool
       Refined.Data.List
+      Refined.Data.ListOld
       Refined.Data.UniqueList
       SelectionSort.Monadic
       SelectionSort.Pure
+      SelectionSort.PureOld
       Utility.List
   other-modules:
       Paths_liquid_monadic_selectionsort

@@ -69,7 +69,8 @@ inBounds xs i = 0 <= i && i < length xs
 
 {-@ reflect contains @-}
 contains :: List -> Int -> Bool
-contains xs y = any (eq y) xs
+-- contains xs y = any (eq y) xs
+contains xs y = 0 < count xs y
 
 -- all
 
@@ -77,6 +78,18 @@ contains xs y = any (eq y) xs
 all :: (Int -> Bool) -> List -> Bool
 all p Nil = True
 all p (Cons x xs) = p x && all p xs
+
+-- all_contains
+
+{-@
+all_contains ::
+  p:(Int -> Bool) ->
+  {xs:List | all p xs} ->
+  {x:Int | contains xs x} ->
+  {p x}
+@-}
+all_contains :: (Int -> Bool) -> List -> Int -> Proof
+all_contains p xs x = undefined
 
 -- any
 
@@ -92,11 +105,41 @@ exists :: (Int -> Bool) -> List -> Bool
 exists p Nil = False
 exists p (Cons x xs) = p x || exists p xs
 
+-- LeAll
+
+{-@
+type LeAll X XS = y:Int -> {contains xs y => x <= y}
+@-}
+type LeAll = Int -> Proof
+
 -- leAll
 
-{-@ reflect leAll @-}
-leAll :: Int -> List -> Bool
-leAll x xs = all (le x) xs
+-- ! OLD
+-- {-@ reflect leAll @-}
+-- leAll :: Int -> List -> Bool
+-- leAll x xs = all (le x) xs
+
+-- leAll_contains_le
+
+{-@
+leAll_contains_le ::
+  x:Int ->
+  {xs:List | leAll x xs} ->
+  {x':Int | contains xs x'} ->
+  {x <= x'}
+@-}
+leAll_contains_le :: Int -> List -> Int -> Proof
+leAll_contains_le x xs y = undefined
+
+{-@
+leAll_contains ::
+  x:Int ->
+  ys:List ->
+  (y:Int -> {contains ys y => x <= y}) ->
+  {leAll x ys}
+@-}
+leAll_contains :: Int -> List -> Permuted -> Proof
+leAll_contains xx ys h = undefined
 
 -- minimumIndex
 
@@ -180,32 +223,24 @@ assume_sorted :: xs:List -> {sorted xs}
 assume_sorted :: List -> Proof
 assume_sorted xs = trivial
 
--- permuted
+-- type Permuted
 
+{-@
+type Permuted XS YS = z:Int -> {permutedAt XS YS z}
+@-}
+type Permuted = Int -> Proof
+
+-- ! OLD
 -- {-@ reflect permuted @-}
+-- {-@
 -- permuted :: List -> List -> Bool
--- permuted xs ys = all (contains ys) xs -- ! won't work because ignores duplicates
+-- @-}
+-- permuted :: List -> List -> Bool
+-- permuted xs ys = all (permutedAt xs ys) xs && all (permutedAt xs ys) ys
 
-{-@ reflect permuted @-}
-{-@
-permuted :: List -> List -> Bool
-@-}
-permuted :: List -> List -> Bool
-permuted xs ys = all (eqCounts xs ys) xs && all (eqCounts xs ys) ys
-
-{-@ reflect eqCounts @-}
-{-@
-eqCounts :: List -> List -> Int -> Bool
-@-}
-eqCounts :: List -> List -> Int -> Bool
-eqCounts xs ys z = count xs z == count ys z
-
-{-@
-assume
-assume_permuted :: xs:List -> ys:List -> {permuted xs ys}
-@-}
-assume_permuted :: List -> List -> Proof
-assume_permuted xs ys = trivial
+{-@ reflect permutedAt @-}
+permutedAt :: List -> List -> Int -> Bool
+permutedAt xs ys z = count xs z == count ys z
 
 -- `count xs y` computes the number of times that `y` appears in `xs`.
 {-@ reflect count @-}
@@ -213,61 +248,138 @@ count :: List -> Int -> Int
 count Nil _ = 0
 count (Cons x xs) y = if x == y then 1 + count xs y else count xs y
 
--- not_permuted_Nil_Cons, not_permuted_Cons_Nil
+-- permuted_reflexive
 
+{-@ automatic-instances permuted_reflexive @-}
 {-@
-not_permuted_Nil_Cons ::
-  x:Int -> xs:List ->
-  {not (permuted Nil (Cons x xs))}
+permuted_reflexive :: xs:List -> Permuted {xs} {xs}
 @-}
-not_permuted_Nil_Cons :: Int -> List -> Proof
-not_permuted_Nil_Cons x xs = undefined
+permuted_reflexive :: List -> Permuted
+permuted_reflexive xs = \x -> trivial
+
+-- permuted_symmetric
 
 {-@
-not_permuted_Cons_Nil ::
-  x:Int -> xs:List ->
-  {not (permuted (Cons x xs) Nil)}
+permuted_symmetric ::
+  xs:List -> ys:List ->
+  Permuted {xs} {ys} ->
+  Permuted {ys} {xs}
 @-}
-not_permuted_Cons_Nil :: Int -> List -> Proof
-not_permuted_Cons_Nil x xs = undefined
+permuted_symmetric :: List -> List -> Permuted -> Permuted
+permuted_symmetric xs ys p = undefined
 
--- permuted_length
+-- TODO: disabled cuz of new def of contains to be in terms of count
+-- -- count_contains
 
-{-@ automatic-instances permuted_length @-}
+-- {-@
+-- count_contains :: xs:List -> {x:Int | contains xs x} -> {contains xs x}
+-- @-}
+-- count_contains :: List -> Int -> Proof
+-- count_contains xs x = undefined
+
+-- -- count_contains
+
+-- {-@ automatic-instances contains_count @-}
+-- {-@
+-- contains_count :: xs:List -> {x:Int | contains xs x} -> {0 < count xs x}
+-- @-}
+-- contains_count :: List -> Int -> Proof
+-- contains_count Nil x = trivial
+-- -- y: contains (Cons xs x) y
+-- contains_count (Cons x xs) y = undefined
+
+-- TODO
+---- not_permuted_Nil_Cons, not_permuted_Cons_Nil
+
+-- {-@
+-- not_permuted_Nil_Cons ::
+--   x:Int -> xs:List ->
+--   {not (permuted Nil (Cons x xs))}
+-- @-}
+-- not_permuted_Nil_Cons :: Int -> List -> Proof
+-- not_permuted_Nil_Cons x xs = undefined
+
+-- {-@
+-- not_permuted_Cons_Nil ::
+--   x:Int -> xs:List ->
+--   {not (permuted (Cons x xs) Nil)}
+-- @-}
+-- not_permuted_Cons_Nil :: Int -> List -> Proof
+-- not_permuted_Cons_Nil x xs = undefined
+
+-- TODO
+-- -- permuted_length
+
+-- {-@ automatic-instances permuted_length @-}
+-- {-@
+-- permuted_length ::
+--   xs:List -> {ys:List | permuted xs ys} ->
+--   {length xs == length ys}
+-- @-}
+-- permuted_length :: List -> List -> Proof
+-- permuted_length Nil Nil = trivial
+-- {-
+-- permuted Nil (Cons y ys)
+-- =
+-- all (eqCounts Nil (Cons y ys)) Nil &&
+-- all (eqCounts Nil (Cons y ys)) (Cons y ys)
+-- =
+-- all (eqCounts Nil (Cons y ys)) (Cons y ys)
+-- =
+-- count Nil y == count (Cons y ys) y &&
+-- all (eqCounts Nil (Cons y ys)) ys
+-- =
+-- 0 = 1 &&
+-- all (eqCounts Nil (Cons y ys)) ys
+-- -}
+-- permuted_length Nil (Cons y ys) = not_permuted_Nil_Cons y ys
+-- permuted_length (Cons x xs) Nil = not_permuted_Cons_Nil x xs
+-- permuted_length (Cons x xs) (Cons y ys) = undefined
+
+-- permuted_contains
+
+{-@ automatic-instances permuted_contains @-}
 {-@
-permuted_length ::
-  xs:List -> {ys:List | permuted xs ys} ->
-  {length xs == length ys}
+permuted_contains ::
+  xs:List ->
+  ys:List ->
+  Permuted {xs} {ys} ->
+  {z:Int | contains xs z} ->
+  {contains ys z}
 @-}
-permuted_length :: List -> List -> Proof
-permuted_length Nil Nil = trivial
-{-
-permuted Nil (Cons y ys)
-=
-all (eqCounts Nil (Cons y ys)) Nil &&
-all (eqCounts Nil (Cons y ys)) (Cons y ys)
-=
-all (eqCounts Nil (Cons y ys)) (Cons y ys)
-=
-count Nil y == count (Cons y ys) y &&
-all (eqCounts Nil (Cons y ys)) ys
-=
-0 = 1 &&
-all (eqCounts Nil (Cons y ys)) ys
--}
-permuted_length Nil (Cons y ys) = not_permuted_Nil_Cons y ys
-permuted_length (Cons x xs) Nil = not_permuted_Cons_Nil x xs
-permuted_length (Cons x xs) (Cons y ys) = undefined
+permuted_contains :: List -> List -> Permuted -> Int -> Proof
+permuted_contains xs ys p z = p z
 
--- permuted_leAll
+-- permuted_not_contains
 
--- {-@ reflect permuted_leAll @-}
+-- permuted_not_contains :: List -> List
+-- leAll_permuted_leAll
+
+-- {-@ reflect leAll_permuted_leAll @-}
+{-@ automatic-instances leAll_permuted_leAll @-}
 {-@
-permuted_leAll ::
+leAll_permuted_leAll ::
   x:Int ->
   {xs:List | leAll x xs} ->
-  {ys:List | permuted xs ys} ->
+  ys:List ->
+  Permuted {xs} {ys} ->
   {leAll x ys}
 @-}
-permuted_leAll :: Int -> List -> List -> Proof
-permuted_leAll x xs ys = undefined -- TODO
+leAll_permuted_leAll :: Int -> List -> List -> Permuted -> Proof
+-- xs: leAll x xs
+-- p: Permuted xs ys
+-- goal1: leAll x ys
+leAll_permuted_leAll x xs ys p =
+  leAll_contains
+    x
+    ys
+    ( \y ->
+        -- y: contains ys y
+        -- lem1: contains xs y // permuted_contains xs ys p y
+        -- G2: x <= y // by leAll_contains_le x xs (y `by` lem1)
+        if contains ys y
+          then
+            (leAll_contains_le x xs)
+              (y `by` permuted_contains ys xs (permuted_symmetric xs ys p) y)
+          else trivial
+    )
