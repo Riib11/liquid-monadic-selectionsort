@@ -2,6 +2,7 @@ module SelectionSort.Pure where
 
 import Proof
 import Refined.Data.List
+import Refined.Data.ListProto
 import Prelude hiding (all, any, length, min, minimum)
 
 -- sort
@@ -19,50 +20,42 @@ sort (Cons x xs) =
 
 -- sort_sorted
 
--- TODO
 {-@ automatic-instances sort_sorted @-}
 {-@
-sort_sorted :: xs:List -> {sorted (sort xs)}
+sort_sorted :: xs:List -> Sorted {sort xs}
 @-}
-sort_sorted :: List -> Proof
-sort_sorted Nil = undefined -- trivial
-sort_sorted (Cons x Nil) = undefined -- trivial
-{-
-SUBGOAL#1: leAll (hd xs') (sort (tl xs'))
-PROOF.
-  leAll (hd xs') (tl xs')
-    by pf1 := select_leAll (Cons x xs)
-  permuted (tl xs') (sort (tl xs'))
-    by pf2 := sort_permuted (tl xs')
-  leAll (hd xs') (sort (tl xs'))
-    by permuted_leAll
-        (hd xs')
-        (tl xs' `by` pf1)
-        (sort (tl xs') `by` pf2)
-END.
-
-SUBGOAL#2: sorted (sort (tl xs'))
-PROOF.
-  trivial by sort_sorted (tl xs')
-END.
--}
-sort_sorted (Cons x xs) =
+sort_sorted :: List -> Sorted
+-- i and j cannot be in bounds for Nil
+sort_sorted Nil i j = trivial
+-- i: Int | inBounds (sort (Cons x xs)) i
+-- j: Int | inBounds (sort (Cons x xs)) i
+sort_sorted (Cons x xs) i j =
   let Cons x' xs' = select (Cons x xs)
-   in trivial
-        -- SUBGOAL#1
-        `by` ( permuted_leAll
-                 x'
-                 (xs' `by` select_leAll (Cons x xs))
-                 (sort xs' `by` sort_permuted xs')
-             )
-        -- SUBGOAL#2
-        `by` sort_sorted xs'
+   in -- GOAL: index (Cons x' (sort xs')) j <= index (Cons x' (sort xs')) j
+      if i <= 0
+        then -- GOAL: x' <= index (Cons x' (sort xs')) j 0
+
+          if j <= 0
+            then -- GOAL: x' <= x'
+              trivial
+            else -- GOAL: x' <= index (sort xs') (j - 1)
+
+              ( leAll_permuted
+                  x'
+                  xs'
+                  (select_leAll (Cons x xs))
+                  (sort xs')
+                  (sort_permuted xs')
+                  (index (sort xs') ((j `by` permuted_length xs' (sort xs') (sort_permuted xs')) - 1))
+              )
+        else -- GOAL: index (sort xs') (i - 1) <= index (sort xs') (j - 1)
+          sort_sorted xs' (i - 1) (j - 1)
 
 -- sort_permuted
 
 -- TODO
 {-@
-assume sort_permuted :: xs:List -> {permuted xs (sort xs)}
+assume sort_permuted :: xs:List -> Permuted {xs} {sort xs}
 @-}
-sort_permuted :: List -> Proof
+sort_permuted :: List -> Permuted
 sort_permuted xs = undefined
