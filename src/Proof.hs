@@ -10,6 +10,7 @@ type Proof = ()
 unreachable :: Proof
 unreachable = ()
 
+{-@ reflect impossible @-}
 {-@
 impossible :: {_:a | False} -> a
 @-}
@@ -21,9 +22,12 @@ trivial :: Proof
 trivial = ()
 
 {-@ reflect by @-}
-{-@ by :: x:a -> b -> {x':a | x' = x} @-}
-by :: a -> b -> a
+by :: a -> Proof -> a
 by x _ = x
+
+{-@ reflect with @-}
+with :: a -> b -> a
+with x _ = x
 
 -- assumptions
 

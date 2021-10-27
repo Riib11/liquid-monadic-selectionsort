@@ -1,7 +1,7 @@
--- {-@ LIQUID "--compile-spec" @-}
-module Refined.Data.ListProto where
+module SelectionSort.PureProto where
 
-import Bot
 import Proof
 import Refined.Data.List
+import Refined.Data.ListProto
+import SelectionSort.Pure
 import Prelude hiding (all, any, length, min, minimum)

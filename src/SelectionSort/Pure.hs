@@ -1,3 +1,5 @@
+-- {-@ LIQUID "--compile-spec" @-}
+
 module SelectionSort.Pure where
 
 import Proof
@@ -18,18 +20,18 @@ sort (Cons x xs) =
   let Cons x' xs' = select (Cons x xs)
    in Cons x' (sort xs')
 
--- sort_sorted
+-- sorted_sort
 
-{-@ automatic-instances sort_sorted @-}
+{-@ automatic-instances sorted_sort @-}
 {-@
-sort_sorted :: xs:List -> Sorted {sort xs}
+sorted_sort :: xs:List -> Sorted {sort xs}
 @-}
-sort_sorted :: List -> Sorted
+sorted_sort :: List -> Sorted
 -- i and j cannot be in bounds for Nil
-sort_sorted Nil i j = trivial
--- i: Int | inBounds (sort (Cons x xs)) i
--- j: Int | inBounds (sort (Cons x xs)) i
-sort_sorted (Cons x xs) i j =
+sorted_sort Nil i j = trivial
+-- inBounds (sort (Cons x xs)) i
+-- inBounds (sort (Cons x xs)) i
+sorted_sort (Cons x xs) i j =
   let Cons x' xs' = select (Cons x xs)
    in -- GOAL: index (Cons x' (sort xs')) j <= index (Cons x' (sort xs')) j
       if i <= 0
@@ -45,17 +47,34 @@ sort_sorted (Cons x xs) i j =
                   xs'
                   (select_leAll (Cons x xs))
                   (sort xs')
-                  (sort_permuted xs')
-                  (index (sort xs') ((j `by` permuted_length xs' (sort xs') (sort_permuted xs')) - 1))
+                  (permuted_sort xs')
+                  (index (sort xs') ((j `by` length_permuted xs' (sort xs') (permuted_sort xs')) - 1))
               )
         else -- GOAL: index (sort xs') (i - 1) <= index (sort xs') (j - 1)
-          sort_sorted xs' (i - 1) (j - 1)
+          sorted_sort xs' (i - 1) (j - 1)
 
--- sort_permuted
+-- permuted_sort
 
--- TODO
+{-@ automatic-instances permuted_sort @-}
+{-@ lazy permuted_sort @-}
 {-@
-assume sort_permuted :: xs:List -> Permuted {xs} {sort xs}
+permuted_sort :: xs:List -> Permuted {xs} {sort xs}
 @-}
-sort_permuted :: List -> Permuted
-sort_permuted xs = undefined
+permuted_sort :: List -> Permuted
+permuted_sort Nil = \z -> trivial
+permuted_sort (Cons x xs) =
+  let Cons x' xs' = select (Cons x xs)
+   in permuted_transitive
+        (Cons x xs)
+        (Cons x' xs')
+        (Cons x' (sort xs'))
+        (permuted_select (Cons x xs))
+        ( permuted_tl
+            (Cons x' xs')
+            (Cons x' (sort xs'))
+            ( permuted_sort
+                ( xs'
+                    `by` length_permuted (Cons x' xs') (Cons x' (sort xs')) (permuted_sort xs')
+                )
+            )
+        )

@@ -23,7 +23,7 @@ module SelectionSort.PureOld where
 --       xs' = without xs m `by` without_length xs m
 --       t   = sort xs'
 --               `by` sort_permuted xs'
---               `by` permuted_length xs' t
+--               `by` length_permuted xs' t
 --               `by` assume_permuted (without xs' (minimum xs')) t
 --       sort_xs = sort xs -- Cons m t
 --   in

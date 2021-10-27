@@ -25,14 +25,17 @@ source-repository head
 
 library
   exposed-modules:
+      Bot
       Proof
       Refined.Data.Bool
       Refined.Data.List
       Refined.Data.ListOld
+      Refined.Data.ListProto
       Refined.Data.UniqueList
       SelectionSort.Monadic
       SelectionSort.Pure
       SelectionSort.PureOld
+      SelectionSort.PureProto
       Utility.List
   other-modules:
       Paths_liquid_monadic_selectionsort
