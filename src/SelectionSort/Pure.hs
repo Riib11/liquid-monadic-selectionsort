@@ -1,4 +1,4 @@
--- {-@ LIQUID "--compile-spec" @-}
+{-@ LIQUID "--compile-spec" @-}
 
 module SelectionSort.Pure where
 

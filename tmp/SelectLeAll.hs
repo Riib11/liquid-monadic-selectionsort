@@ -21,7 +21,7 @@ if H1: x1 <= x2 then
         H5: x1 == x' || contains xs' x1 //
           contains_cons
           (Cons x' xs')
-            (x1 `by` permuted_contains (Cons x1 xs) (Cons x' xs') p
+            (x1 `by` contains_permuted (Cons x1 xs) (Cons x' xs') p
                       (x1 `by` contains_hd (Cons x1 xs)))
         if H6: x1 == x' then
           H7: x' <= x1 // H6
@@ -47,7 +47,7 @@ else H1: x2 < x1
         H5: x1 == x' || contains xs' x2 //
           contains_cons
           (Cons x' xs')
-            (x2 `by` permuted_contains (Cons x2 xs) (Cons x' xs') p
+            (x2 `by` contains_permuted (Cons x2 xs) (Cons x' xs') p
                       (x2 `by` contains_hd (Cons x2 xs)))
         if H6: x2 == x' then
           H7: x' <= x2 // H6
@@ -82,13 +82,13 @@ select_leAll (Cons x1 (Cons x2 xs)) y =
                         `by` contains_cons
                           (Cons x' xs')
                           ( x1
-                              `by` permuted_contains
+                              `by` contains_permuted
                                 (Cons x1 xs)
                                 (Cons x' xs')
                                 (select_permuted (Cons x1 xs))
                                 (x1 `by` contains_hd (Cons x1 xs))
                           )
-                        `by` permuted_contains
+                        `by` contains_permuted
                           (Cons x1 xs)
                           (Cons x' xs')
                           (select_permuted (Cons x1 xs))
@@ -101,13 +101,13 @@ select_leAll (Cons x1 (Cons x2 xs)) y =
                         `by` contains_cons
                           (Cons x' xs')
                           ( x1
-                              `by` permuted_contains
+                              `by` contains_permuted
                                 (Cons x1 xs)
                                 (Cons x' xs')
                                 (select_permuted (Cons x1 xs))
                                 (x1 `by` contains_hd (Cons x1 xs))
                           )
-                        `by` permuted_contains
+                        `by` contains_permuted
                           (Cons x1 xs)
                           (Cons x' xs')
                           (select_permuted (Cons x1 xs))

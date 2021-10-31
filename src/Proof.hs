@@ -21,40 +21,25 @@ impossible x = x
 trivial :: Proof
 trivial = ()
 
+{-@ reflect refinement @-}
+refinement :: a -> Proof
+refinement _ = trivial
+
 {-@ reflect by @-}
 by :: a -> Proof -> a
 by x _ = x
 
-{-@ reflect with @-}
-with :: a -> b -> a
-with x _ = x
-
--- assumptions
+{-@ reflect by @-}
+by_refinement :: a -> b -> a
+by_refinement x y = x `by` refinement y
 
 {-@
-assume
-assume_eq :: x:Int -> y:Int -> {x == y}
+assume :: b:Bool -> {b == True}
 @-}
-assume_eq :: Int -> Int -> Proof
-assume_eq x y = trivial
+assume :: Bool -> Proof
+assume b = undefined
 
-{-@
-assume
-assume_le :: x:Int -> y:Int -> {x <= y}
-@-}
-assume_le :: Int -> Int -> Proof
-assume_le x y = trivial
-
-{-@
-assume
-assume_lt :: x:Int -> y:Int -> {x < y}
-@-}
-assume_lt :: Int -> Int -> Proof
-assume_lt x y = trivial
-
-{-@
-assume
-assume_true :: b:Bool -> {b == True}
-@-}
-assume_true :: Bool -> Proof
-assume_true b = trivial
+-- {-@
+-- assert :: b:Bool -> {}
+-- @-}
+-- assert ::
