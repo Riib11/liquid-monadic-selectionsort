@@ -14,6 +14,20 @@ sort (Cons x Nil) = Cons x Nil
 sort (Cons x xs) =
   let Cons x' xs' = select (Cons x xs)
    in Cons x' (sort xs')
+
+{-@
+select :: {xs:List | 0 < lng xs} -> {xs':List | lng xs == lng xs'}
+@-}
+select :: List -> List
+select (Cons x Nil) = Cons x Nil
+select (Cons x1 (Cons x2 xs)) =
+  if x1 <= x2
+    then
+      let (Cons x' xs') = select (Cons x1 xs)
+       in Cons x' (Cons x2 xs')
+    else
+      let (Cons x' xs') = select (Cons x2 xs)
+       in Cons x' (Cons x1 xs')
 ```
 
 ### Correctness Specifications
