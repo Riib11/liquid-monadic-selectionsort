@@ -39,7 +39,16 @@ assume :: b:Bool -> {b == True}
 assume :: Bool -> Proof
 assume b = undefined
 
--- {-@
--- assert :: b:Bool -> {}
--- @-}
--- assert ::
+{-@ reflect begin @-}
+begin :: a -> Proof
+begin _ = trivial
+
+infixl 3 ===
+
+{-@ infixl 3 === @-}
+{-@ reflect === @-}
+{-@
+(===) :: x:a -> y:{a | y == x} -> z:{a | z == x && z == y}
+@-}
+(===) :: a -> a -> a
+x === y = y

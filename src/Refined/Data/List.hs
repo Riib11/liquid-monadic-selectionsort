@@ -1,8 +1,7 @@
-{-@ LIQUID "--compile-spec" @-}
+-- {-@ LIQUID "--compile-spec" @-}
 module Refined.Data.List where
 
 import Proof
-import Prelude hiding (all, any, length, min, minimum)
 
 {-@ reflect le @-}
 le :: Int -> Int -> Bool
@@ -19,18 +18,18 @@ data List = Nil | Cons Int List
 
 infixr 5 `Cons`
 
--- List uses length as a termination measure
-{-@ data List [length] @-}
+-- List uses lng as a termination measure
+{-@ data List [lng] @-}
 
--- length
+-- lng
 
-{-@ measure length @-}
+{-@ measure lng @-}
 {-@
-length :: List -> {l:Int | 0 <= l}
+lng :: List -> {l:Int | 0 <= l}
 @-}
-length :: List -> Int
-length Nil = 0
-length (Cons x xs) = 1 + length xs
+lng :: List -> Int
+lng Nil = 0
+lng (Cons x xs) = 1 + lng xs
 
 -- count
 
@@ -65,7 +64,7 @@ contains xs y = 0 < count xs y
 
 {-@
 contains_eq ::
-  {xs:List | 0 < length xs} ->
+  {xs:List | 0 < lng xs} ->
   {x:Int | contains xs x} ->
   {y:Int | x == y} ->
   {contains xs y}
@@ -78,7 +77,7 @@ contains_eq xs x y = trivial
 {-@ automatic-instances hd @-}
 {-@ reflect hd @-}
 {-@
-hd :: {xs:List | 0 < length xs} -> {x:Int | contains xs x}
+hd :: {xs:List | 0 < lng xs} -> {x:Int | contains xs x}
 @-}
 hd :: List -> Int
 hd (Cons x Nil) = x
@@ -89,7 +88,7 @@ hd (Cons x xs) = x `by` count_positif xs x
 {-@ reflect count_hd @-}
 {-@ automatic-instances count_hd @-}
 {-@
-count_hd :: {xs:List | 0 < length xs} -> {0 < count xs (hd xs)}
+count_hd :: {xs:List | 0 < lng xs} -> {0 < count xs (hd xs)}
 @-}
 count_hd :: List -> Proof
 count_hd (Cons x Nil) = trivial
@@ -99,7 +98,7 @@ count_hd (Cons x xs) = count_positif xs x
 
 {-@ reflect tl @-}
 {-@
-tl :: {xs:List | 0 < length xs} -> {xs':List | length xs = length xs' + 1}
+tl :: {xs:List | 0 < lng xs} -> {xs':List | lng xs = lng xs' + 1}
 @-}
 tl :: List -> List
 tl (Cons x xs) = xs
@@ -109,7 +108,7 @@ tl (Cons x xs) = xs
 {-@ automatic-instances count_tl @-}
 {-@
 count_tl ::
-  {xs:List | 0 < length xs} ->
+  {xs:List | 0 < lng xs} ->
   {y:Int | y /= hd xs} ->
   {count xs y == count (tl xs) y}
 @-}
@@ -123,7 +122,7 @@ count_tl (Cons x xs) y = trivial
 -- {-@ automatic-instances contains_cons @-}
 -- {-@
 -- contains_cons ::
---   {xs:List | 0 < length xs} ->
+--   {xs:List | 0 < lng xs} ->
 --   {y:Int | contains xs y} ->
 --   {y == hd xs || contains (tl xs) y}
 -- @-}
@@ -139,7 +138,7 @@ count_tl (Cons x xs) y = trivial
 {-@ automatic-instances contains_hd @-}
 {-@
 contains_hd ::
-  {xs:List | 0 < length xs} ->
+  {xs:List | 0 < lng xs} ->
   {contains xs (hd xs)}
 @-}
 contains_hd :: List -> Proof
@@ -151,7 +150,7 @@ contains_hd xs = count_hd xs
 {-@ automatic-instances contains_tl @-}
 {-@
 contains_tl ::
-  {xs:List | 0 < length xs} ->
+  {xs:List | 0 < lng xs} ->
   {y:Int | contains xs y && y /= hd xs} ->
   {contains (tl xs) y}
 @-}
@@ -164,7 +163,7 @@ contains_tl (Cons x xs) y = trivial
 -- The index `i` is in bounds of `xs`
 {-@ inline inBounds @-}
 inBounds :: List -> Int -> Bool
-inBounds xs i = 0 <= i && i < length xs
+inBounds xs i = 0 <= i && i < lng xs
 
 -- index
 
@@ -177,13 +176,13 @@ index :: List -> Int -> Int
 index (Cons x xs) i =
   if i <= 0
     then x `by` contains_hd (Cons x xs)
-    else index xs (i - 1) -- TODO
+    else index xs (i - 1)
 
 -- index_0_hd
 
 {-@ automatic-instances index_0_hd @-}
 {-@
-index_0_hd :: {xs:List | 0 < length xs} -> {index xs 0 = hd xs}
+index_0_hd :: {xs:List | 0 < lng xs} -> {index xs 0 = hd xs}
 @-}
 index_0_hd :: List -> Int -> Proof
 index_0_hd xs i = trivial
@@ -200,7 +199,7 @@ type LeAll = Int -> Proof
 {-@ automatic-instances minimumIndex @-}
 {-@ reflect minimumIndex @-}
 {-@
-minimumIndex :: {xs:List | length xs > 0} -> {i:Int | inBounds xs i}
+minimumIndex :: {xs:List | lng xs > 0} -> {i:Int | inBounds xs i}
 @-}
 minimumIndex :: List -> Int
 minimumIndex (Cons x Nil) = 0
@@ -218,7 +217,7 @@ remove (Cons x xs) y = if x == y then xs else Cons x (remove xs y)
 {-@ automatic-instances count_remove_contains @-}
 {-@
 count_remove_contains ::
-  {xs:List | 0 < length xs} ->
+  {xs:List | 0 < lng xs} ->
   {y:Int | contains xs y} ->
   {count (remove xs y) y == count xs y - 1}
 @-}
@@ -312,23 +311,23 @@ contains_permuted ::
 contains_permuted :: List -> List -> Permuted -> Int -> Proof
 contains_permuted xs ys p z = p z
 
--- length_remove
+-- lng_remove
 
-{-@ reflect length_remove @-}
-{-@ automatic-instances length_remove @-}
+{-@ reflect lng_remove @-}
+{-@ automatic-instances lng_remove @-}
 {-@
-length_remove ::
-  {xs:List | 0 < length xs} ->
+lng_remove ::
+  {xs:List | 0 < lng xs} ->
   {y:Int | contains xs y} ->
-  {length (remove xs y) == length xs - 1}
+  {lng (remove xs y) == lng xs - 1}
 @-}
-length_remove :: List -> Int -> Proof
-length_remove (Cons x Nil) y =
+lng_remove :: List -> Int -> Proof
+lng_remove (Cons x Nil) y =
   if x == y then trivial else trivial
-length_remove (Cons x1 (Cons x2 xs)) y =
+lng_remove (Cons x1 (Cons x2 xs)) y =
   if x1 == y
     then trivial
-    else length_remove (Cons x2 xs) y
+    else lng_remove (Cons x2 xs) y
 
 -- surface
 -- permutes an element from inside a list to the head
@@ -336,19 +335,19 @@ length_remove (Cons x1 (Cons x2 xs)) y =
 {-@ reflect surface @-}
 {-@
 surface ::
-  {xs:List | 0 < length xs} ->
+  {xs:List | 0 < lng xs} ->
   {y:Int | contains xs y} ->
-  {xs':List | length xs == length xs'}
+  {xs':List | lng xs == lng xs'}
 @-}
 surface :: List -> Int -> List
-surface xs y = Cons y (remove xs y) `by` length_remove xs y
+surface xs y = Cons y (remove xs y) `by` lng_remove xs y
 
 -- hd_surface
 
 {-@ automatic-instances hd_surface @-}
 {-@
 hd_surface ::
-  {xs:List | 0 < length xs} ->
+  {xs:List | 0 < lng xs} ->
   {y:Int | contains xs y} ->
   {hd (surface xs y) == y}
 @-}
@@ -363,7 +362,7 @@ hd_surface (Cons x xs) y = trivial
 {-@ automatic-instances permuted_surface @-}
 {-@
 permuted_surface ::
-  {xs:List | 0 < length xs} ->
+  {xs:List | 0 < lng xs} ->
   {y:Int | contains xs y} ->
   Permuted {xs} {surface xs y}
 @-}
@@ -381,7 +380,7 @@ permuted_surface xs y z =
 
 {-@ reflect select @-}
 {-@
-select :: {xs:List | 0 < length xs} -> {xs':List | length xs == length xs'}
+select :: {xs:List | 0 < lng xs} -> {xs':List | lng xs == lng xs'}
 @-}
 select :: List -> List
 select (Cons x Nil) = Cons x Nil
@@ -398,7 +397,7 @@ select (Cons x1 (Cons x2 xs)) =
 
 {-@ reflect swap_first2 @-}
 {-@
-swap_first2 :: {xs:List | 2 <= length xs} -> List
+swap_first2 :: {xs:List | 2 <= lng xs} -> List
 @-}
 swap_first2 :: List -> List
 swap_first2 (Cons x1 (Cons x2 xs)) = (Cons x2 (Cons x1 xs))
@@ -408,7 +407,7 @@ swap_first2 (Cons x1 (Cons x2 xs)) = (Cons x2 (Cons x1 xs))
 {-@ automatic-instances permuted_swap_first2 @-}
 {-@
 permuted_swap_first2 ::
-  {xs:List | 2 <= length xs} ->
+  {xs:List | 2 <= lng xs} ->
   Permuted {xs} {swap_first2 xs}
 @-}
 permuted_swap_first2 :: List -> Permuted
@@ -422,7 +421,7 @@ permuted_swap_first2 (Cons x1 (Cons x2 xs)) y =
 {-@ automatic-instances permuted_select @-}
 {-@
 permuted_select ::
-  {xs:List | 0 < length xs} ->
+  {xs:List | 0 < lng xs} ->
   Permuted {xs} {select xs}
 @-}
 permuted_select :: List -> Permuted
@@ -475,8 +474,8 @@ leAll_permuted x xs leAll ys perm y = leAll (y `by` perm y)
 {-@ automatic-instances permuted_tl @-}
 {-@
 permuted_tl ::
-  {xs:List | 0 < length xs} ->
-  {ys:List | 0 < length ys && hd xs == hd ys} ->
+  {xs:List | 0 < lng xs} ->
+  {ys:List | 0 < lng ys && hd xs == hd ys} ->
   Permuted {xs} {ys} ->
   Permuted {tl xs} {tl ys}
 @-}
@@ -492,8 +491,8 @@ permuted_tl (Cons x1 (Cons x2 xs)) (Cons y1 (Cons y2 ys)) p z = if z == x1 then 
 -- {-@ automatic-instances permuted_remove @-}
 -- {-@
 -- permuted_remove ::
---   {xs:List | 0 < length xs} ->
---   {ys:List | 0 < length ys} ->
+--   {xs:List | 0 < lng xs} ->
+--   {ys:List | 0 < lng ys} ->
 --   {z:Int | contains xs z} ->
 --   Permuted {xs} {ys} ->
 --   Permuted {tl (surface xs z)} {tl (surface ys z)}
@@ -501,24 +500,24 @@ permuted_tl (Cons x1 (Cons x2 xs)) (Cons y1 (Cons y2 ys)) p z = if z == x1 then 
 -- permuted_remove :: List -> List -> Int -> Permuted -> Permuted
 -- permuted_remove xs ys z p w = _
 
--- length_permuted
+-- lng_permuted
 
-{-@ automatic-instances length_permuted @-}
+{-@ automatic-instances lng_permuted @-}
 {-@
-length_permuted ::
+lng_permuted ::
   xs:List ->
   ys:List ->
   Permuted {xs} {ys} ->
-  {length xs == length ys}
+  {lng xs == lng ys}
 @-}
-length_permuted :: List -> List -> Permuted -> Proof
-length_permuted Nil Nil p = trivial
-length_permuted Nil (Cons y ys) p = trivial `by` p y `by` count_hd (Cons y ys)
-length_permuted (Cons x xs) Nil p = trivial `by` p x `by` count_hd (Cons x xs)
-length_permuted (Cons x xs) (Cons y ys) p =
+lng_permuted :: List -> List -> Permuted -> Proof
+lng_permuted Nil Nil p = trivial
+lng_permuted Nil (Cons y ys) p = trivial `by` p y `by` count_hd (Cons y ys)
+lng_permuted (Cons x xs) Nil p = trivial `by` p x `by` count_hd (Cons x xs)
+lng_permuted (Cons x xs) (Cons y ys) p =
   let x' = x `by` contains_permuted (Cons x xs) (Cons y ys) p (x `by` contains_hd (Cons x xs))
    in trivial
-        `by` length_permuted
+        `by` lng_permuted
           xs
           (tl (surface (Cons y ys) x'))
           ( permuted_tl
@@ -531,3 +530,132 @@ length_permuted (Cons x xs) (Cons y ys) p =
                   (permuted_surface (Cons y ys) (x `by` p x))
               )
           )
+
+-- select_leAll
+
+{-@ automatic-instances select_leAll @-}
+{-@
+select_leAll ::
+  {xs:List | 0 < lng xs} ->
+  LeAll {hd (select xs)} {tl (select xs)}
+@-}
+select_leAll :: List -> LeAll
+select_leAll (Cons x Nil) y = trivial
+{-
+G: contains (tl (select xs)) y => y <= hd (select xs)
+
+if H1: x1 <= x2 then
+  let Cons x' xs' = select (Cons x1 xs) in
+  G: contains (Cons x2 xs') y => x' <= y
+  if H2: contains (Cons x2 xs') y then
+    G: x' <= y
+    H2: \z -> contains xs' z => x' <= z // select_leAll (Cons x1 xs)
+    H3: y == x2 || contains xs' y // contains_cons (Cons x2 xs') y
+    if H4: y == x2 then
+        p: Permuted {Cons x1 xs} {Cons x' xs'} := permuted_select (Cons x1 xs)
+        H5: x1 == x' || contains xs' x1 //
+          contains_cons
+          (Cons x' xs')
+            (x1 `by` contains_permuted (Cons x1 xs) (Cons x' xs') p (x1 `by_refinement` hd (Cons x1 xs)))
+        if H6: x1 == x' then
+          H7: x' <= x1 // H6
+          H8: x' <= x2 // H1, H7
+          G:  x' <= y  // H4, H8
+        else H6: contains xs' x1
+          H7: x' <= x1 // H2 x1 i.e. select_leAll (Cons x1 xs) x1
+          H8: x' <= x2 // H1, H7
+          G:  x' <= y  // H4, H8
+    else H4: contains xs' y
+      G: x' <= y // H2 y i.e. select_leAll (Cons x1 xs) y
+  else H2: not (contains (Cons x2 xs') y)
+    G: True // trivial
+else H1: x2 < x1
+  visa vera x1 <-> x2
+-}
+select_leAll (Cons x1 (Cons x2 xs)) y =
+  if x1 <= x2 -- H1
+    then
+      let Cons x' xs' = select (Cons x1 xs)
+       in if contains (Cons x2 xs') y
+            then -- H2
+
+              if y == x2
+                then -- H4
+
+                  if x1 == x'
+                    then -- H6
+
+                      trivial
+                        `by` contains_eq (Cons x' xs') (x' `by` contains_hd (Cons x' xs')) x1
+                        `by` select_leAll (Cons x1 xs) x1
+                        `by` contains_permuted
+                          (Cons x1 xs)
+                          (Cons x' xs')
+                          (permuted_select (Cons x1 xs))
+                          (x1 `by` contains_hd (Cons x1 xs))
+                    else -- H6
+
+                      trivial
+                        `by` contains_hd (Cons x2 xs')
+                        `by` contains_tl
+                          (Cons x' xs')
+                          ( x1
+                              `by` contains_permuted
+                                (Cons x1 xs)
+                                (Cons x' xs')
+                                (permuted_select (Cons x1 xs))
+                                (x1 `by` contains_hd (Cons x1 xs))
+                          )
+                        `by` select_leAll (Cons x1 xs) x1
+                        `by` contains_permuted
+                          (Cons x1 xs)
+                          (Cons x' xs')
+                          (permuted_select (Cons x1 xs))
+                          (x1 `by` contains_hd (Cons x1 xs))
+                else -- H4
+                  select_leAll (Cons x1 xs) y
+            else -- H2
+              trivial
+    else -- H1
+
+      let Cons x' xs' = select (Cons x2 xs)
+       in if contains (Cons x1 xs') y
+            then -- H2
+
+              if y == x1
+                then -- H4
+
+                  if x2 == x'
+                    then -- H6
+
+                      trivial
+                        `by` contains_eq (Cons x' xs') (x' `by` contains_hd (Cons x' xs')) x2
+                        `by` select_leAll (Cons x2 xs) x2
+                        `by` contains_permuted
+                          (Cons x2 xs)
+                          (Cons x' xs')
+                          (permuted_select (Cons x2 xs))
+                          (x2 `by` contains_hd (Cons x2 xs))
+                    else -- H6
+
+                      trivial
+                        `by` contains_hd (Cons x1 xs')
+                        `by` contains_tl
+                          (Cons x' xs')
+                          ( x2
+                              `by` contains_permuted
+                                (Cons x2 xs)
+                                (Cons x' xs')
+                                (permuted_select (Cons x2 xs))
+                                (x2 `by` contains_hd (Cons x2 xs))
+                          )
+                        `by` select_leAll (Cons x2 xs) x2
+                        `by` contains_permuted
+                          (Cons x2 xs)
+                          (Cons x' xs')
+                          (permuted_select (Cons x2 xs))
+                          (x2 `by` contains_hd (Cons x2 xs))
+                else -- H4
+                  select_leAll (Cons x2 xs) y
+            else -- H2
+              trivial

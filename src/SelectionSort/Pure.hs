@@ -1,4 +1,4 @@
-{-@ LIQUID "--compile-spec" @-}
+-- {-@ LIQUID "--compile-spec" @-}
 
 module SelectionSort.Pure where
 
@@ -29,8 +29,6 @@ sorted_sort :: xs:List -> Sorted {sort xs}
 sorted_sort :: List -> Sorted
 -- i and j cannot be in bounds for Nil
 sorted_sort Nil i j = trivial
--- inBounds (sort (Cons x xs)) i
--- inBounds (sort (Cons x xs)) i
 sorted_sort (Cons x xs) i j =
   let Cons x' xs' = select (Cons x xs)
    in -- GOAL: index (Cons x' (sort xs')) j <= index (Cons x' (sort xs')) j
@@ -48,7 +46,10 @@ sorted_sort (Cons x xs) i j =
                   (select_leAll (Cons x xs))
                   (sort xs')
                   (permuted_sort xs')
-                  (index (sort xs') ((j `by` length_permuted xs' (sort xs') (permuted_sort xs')) - 1))
+                  ( index
+                      (sort xs')
+                      ((j `by` lng_permuted xs' (sort xs') (permuted_sort xs')) - 1)
+                  )
               )
         else -- GOAL: index (sort xs') (i - 1) <= index (sort xs') (j - 1)
           sorted_sort xs' (i - 1) (j - 1)
@@ -71,10 +72,17 @@ permuted_sort (Cons x xs) =
         (permuted_select (Cons x xs))
         ( permuted_tl
             (Cons x' xs')
-            (Cons x' (sort xs'))
-            ( permuted_sort
-                ( xs'
-                    `by` length_permuted (Cons x' xs') (Cons x' (sort xs')) (permuted_sort xs')
-                )
+            ( Cons x' (sort xs')
+                `by` hd_reduce x' xs'
+                `by` hd_reduce x' (sort xs')
             )
+            (permuted_sort (xs' `by` lng_permuted (Cons x' xs') (Cons x' (sort xs')) (permuted_sort xs')))
         )
+
+{-@ automatic-instances hd_reduce @-}
+{-@
+hd_reduce :: x:Int -> xs:List -> {x == hd (Cons x xs)}
+@-}
+hd_reduce :: Int -> List -> Proof
+hd_reduce x Nil = trivial
+hd_reduce x (Cons y ys) = trivial
