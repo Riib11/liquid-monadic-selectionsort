@@ -1,7 +1,5 @@
 # liquid-monadic-selectionsort
 
-## Performance
-
 ## Pure Selection Sort
 
 ### Sorting
