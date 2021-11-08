@@ -1,18 +1,14 @@
--- {-@ LIQUID "--compile-spec" @-}
+{-@ LIQUID "--compile-spec" @-}
 
 module SelectionSort.Pure where
 
 import Proof
+import Refined.Data.Int
 import Refined.Data.List
-import Refined.Data.ListProto
-import Prelude hiding (all, any, length, min, minimum)
 
--- sort
+-- selection sort
 
 {-@ reflect sort @-}
-{-@
-sort :: List -> List
-@-}
 sort :: List -> List
 sort Nil = Nil
 sort (Cons x Nil) = Cons x Nil

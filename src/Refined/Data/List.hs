@@ -1,25 +1,13 @@
--- {-@ LIQUID "--compile-spec" @-}
+{-@ LIQUID "--compile-spec" @-}
 module Refined.Data.List where
 
 import Proof
-
-{-@ reflect le @-}
-le :: Int -> Int -> Bool
-le x y = x <= y
-
-{-@ reflect eq @-}
-eq :: Int -> Int -> Bool
-eq x y = x == y
+import Refined.Data.Int
 
 -- data List
 
 data List = Nil | Cons Int List
   deriving (Show, Eq)
-
-infixr 5 `Cons`
-
--- List uses lng as a termination measure
-{-@ data List [lng] @-}
 
 -- lng
 

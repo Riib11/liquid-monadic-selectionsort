@@ -22,15 +22,9 @@ description:
   <https://github.com/githubuser/liquid-monadic-selectionsort#readme>
 
 dependencies:
-  # - base >= 4.7 && < 5
-  - liquidhaskell == 0.8.10.2
-  - liquid-base
-  - liquid-prelude
-  - template-haskell
-  - haskell-src-meta
-  - parsec
-  - neat-interpolation
-  - text
+  # - base == 4.15.0.0
+  - liquidhaskell == 0.8.10.7
+  - liquid-base == 4.15.0.0
 
 library:
   source-dirs: src
@@ -49,7 +43,7 @@ library:
     - -fplugin-opt=LiquidHaskell:--diff
     - -fplugin-opt=LiquidHaskell:--short-names
     - -fplugin-opt=LiquidHaskell:--prune-unsorted
-
+#
 # executables:
 #   liquid-monadic-selectionsort-exe:
 #     main: Main.hs
@@ -61,24 +55,24 @@ library:
 #     dependencies:
 #       - liquid-monadic-selectionsort
 
-tests:
-  liquid-monadic-selectionsort-test:
-    main: Spec.hs
-    source-dirs: test
-    default-extensions:
-      - GADTs
-      - KindSignatures
-      - ExplicitForAll
-      - RankNTypes
-      - FlexibleInstances
-      - UndecidableInstances
-      - MultiParamTypeClasses
-    ghc-options:
-      - -fplugin=LiquidHaskell
-      - -fplugin-opt=LiquidHaskell:--reflection
-      - -fplugin-opt=LiquidHaskell:--ple-local
-      - -fplugin-opt=LiquidHaskell:--diff
-      - -fplugin-opt=LiquidHaskell:--short-names
-      - -fplugin-opt=LiquidHaskell:--prune-unsorted
-    dependencies:
-      - liquid-monadic-selectionsort
+# tests:
+#   liquid-monadic-selectionsort-test:
+#     main: Spec.hs
+#     source-dirs: test
+#     default-extensions:
+#       - GADTs
+#       - KindSignatures
+#       - ExplicitForAll
+#       - RankNTypes
+#       - FlexibleInstances
+#       - UndecidableInstances
+#       - MultiParamTypeClasses
+#     ghc-options:
+#       - -fplugin=LiquidHaskell
+#       - -fplugin-opt=LiquidHaskell:--reflection
+#       - -fplugin-opt=LiquidHaskell:--ple-local
+#       - -fplugin-opt=LiquidHaskell:--diff
+#       - -fplugin-opt=LiquidHaskell:--short-names
+#       - -fplugin-opt=LiquidHaskell:--prune-unsorted
+#     dependencies:
+#       - liquid-monadic-selectionsort

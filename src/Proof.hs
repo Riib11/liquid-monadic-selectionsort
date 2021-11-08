@@ -34,7 +34,7 @@ by_refinement :: a -> b -> a
 by_refinement x y = x `by` refinement y
 
 {-@
-assume :: b:Bool -> {b == True}
+assume :: b:Bool -> {b}
 @-}
 assume :: Bool -> Proof
 assume b = undefined
