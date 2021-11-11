@@ -129,3 +129,33 @@ quicksort :: Array Unit
 @-}
 quicksort :: Array Unit
 quicksort = undefined
+
+swap :: Ix -> Ix -> Array ()
+swap i j =
+  bindA (readA i) $ \x ->
+  bindA (readA j) $ \y ->
+  bindA (writeA i y) $ \_ ->
+  writeA j x
+
+partition :: Ix -> Ix -> Ix -> Ix -> Int -> Array Ix
+partition il ih i len p
+  | i >= len - 1 = 
+    bindA (swap ih i) $ \_ ->
+    returnA ih
+  | otherwise = 
+      bindA (readA i) $ \x ->
+      if x <= p then
+        bindA (swap i ih) $ \_ ->
+        partition il (ih+1) (i+1) len p
+      else 
+        partition il ih (i+1) len p
+
+qsort :: Ix -> Ix -> Array Unit
+qsort i j | i >= j = returnA ()
+          | otherwise = 
+              bindA (readA (j-1)) $ \p ->
+              bindA (partition i i i j p) $ \ip ->
+              bindA (qsort i ip) $ \_ ->
+              qsort ip j
+              
+            
