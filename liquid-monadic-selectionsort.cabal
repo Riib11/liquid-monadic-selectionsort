@@ -38,8 +38,6 @@ library
       Refined.Data.Unit
       Refined.Function
       Relation.Equality.Prop
-      SelectionSort.Monadic
-      SelectionSort.Pure
   other-modules:
       Paths_liquid_monadic_selectionsort
   hs-source-dirs:
