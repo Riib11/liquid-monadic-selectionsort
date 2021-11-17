@@ -35,6 +35,7 @@ library
       Refined.Data.Bool
       Refined.Data.Int
       Refined.Data.List
+      Refined.Data.Unit
       Refined.Function
       Relation.Equality.Prop
       SelectionSort.Monadic
