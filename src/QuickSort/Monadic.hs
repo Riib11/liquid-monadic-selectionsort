@@ -24,6 +24,7 @@ sub1 x = x - 1
 data List a <p :: a -> a -> Bool> = Nil | Cons {hd::a, tl::List (a<p hd>)}
 @-}
 data List a = Nil | Cons a (List a)
+  deriving (Eq)
 
 {-@
 type ListSorted = List<{\h v -> h <= v}> Int
@@ -85,25 +86,22 @@ type ArraySorted a = State (List<{\h v -> h <= v}> Int) a
 type ArraySorted a = Array a
 
 {-@
-type State s a = s -> (Maybe (a, s), [String])
+type State s a = s -> Maybe (a, s)
 @-}
-type State s a = s -> (Maybe (a, s), [String])
+type State s a = s -> Maybe (a, s)
 
 -- Monad interface
 
 -- {-@ reflect returnA @-}
 returnA :: a -> Array a
-returnA a ls = (Just (a, ls), [])
+returnA a ls = Just (a, ls)
 
 -- {-@ reflect bindA @-}
 bindA :: Array a -> (a -> Array b) -> Array b
 bindA m k xs =
   case m xs of
-    (Just (a, xs'), ms) ->
-      case k a xs' of
-        (Just (b, xs''), ms') -> (Just (b, xs''), ms ++ ms')
-        (Nothing, ms') -> (Nothing, ms ++ ms')
-    (Nothing, ms)-> (Nothing, ms)
+    Just (a, xs') -> k a xs'
+    Nothing -> Nothing 
 
 -- {-@ reflect constant @-}
 constant :: a -> b -> a
@@ -117,17 +115,17 @@ seqA m1 m2 = bindA m1 (constant m2)
 
 -- {-@ reflect failA @-}
 failA :: Array a
-failA xs = (Nothing, [])
+failA xs = Nothing
 
 -- State interface
 
 -- {-@ reflect getA @-}
 getA :: Array (List Int)
-getA xs = (Just (xs, xs), [])
+getA xs = Just (xs, xs)
 
 -- {-@ reflect putA @-}
 putA :: List Int -> Array Unit
-putA xs _ = (Just (unit, xs), [])
+putA xs _ = Just (unit, xs)
 
 -- Array interface
 
@@ -138,108 +136,49 @@ readA :: l:Int -> i:Ix {l} -> Array Int
 readA :: Int -> Ix -> Array Int
 readA l i xs =
   case readL l i xs of
-    Nothing -> (Nothing, [])
-    Just x -> (Just (x, xs), [])
+    Nothing -> Nothing
+    Just x -> Just (x, xs)
 
 -- TODO: not sure why I need to expand `Array Unit` here
 -- {-@ reflect writeA @-}
 {-@
-writeA :: l:Int -> i:Ix {l} -> Int -> (List Int -> (Maybe (Unit, List Int), [String]))
+writeA :: l:Int -> i:Ix {l} -> Int -> (List Int -> Maybe (Unit, List Int))
 @-}
 writeA :: Int -> Ix -> Int -> Array Unit
 writeA l i y xs =
   case writeL l i y xs of
-    Nothing -> (Nothing, [])
-    Just xs' -> (Just (unit, xs'), [])
-
--- notesA
-
-{-@
-notesA :: [String] -> Array Unit
-@-}
-notesA :: [String] -> Array Unit
-notesA ms xs = (Just (unit, xs), ms)
-
--- snapshot
-
-snapshot :: Array Unit
-snapshot xs = (Just (unit, xs), [show xs])
-
-{-@
-indent :: Int -> String
-@-}
-indent :: Int -> String
-indent i = if i <= 0 then "" else "  " ++ indent (i - 1)
-
-{-@
-snapshotPartition :: l:Int -> Ix {l} -> Ix {l} -> Ix {l} -> Array Unit
-@-}
-snapshotPartition :: Int -> Ix -> Ix -> Ix -> Array Unit
-snapshotPartition l iLo iHi iP =
-  snapshot `seqA`
-  if iLo < iHi then
-    notesA
-      [ indent iLo ++ "l" ++
-        indent (iHi - iLo - 1 `by` undefined) ++ " " ++ "h" ++
-        indent (iP - iHi - 1 `by` undefined) ++ " " ++ "p" ]
-  else
-    if iLo == iHi then
-      notesA ["iLo = iHi"]
-    else
-      notesA ["iLo > iHi"]
-
-{-@
-snapshotSort :: l:Int -> Ix {l} -> Ix {l} -> Array Unit
-@-}
-snapshotSort :: Int -> Ix -> Ix -> Array Unit
-snapshotSort l i j =
-  snapshot `seqA`
-  if i < j then
-    notesA
-      [ indent i ++ "i" ++
-        indent (j - i - 1 `by` undefined) ++ " " ++ "j" ]
-  else
-    notesA ["i < j :: " ++ show i ++ " < " ++ show j]
+    Nothing -> Nothing
+    Just xs' -> Just (unit, xs')
 
 -- swap
 
 -- {-@ reflect swap @-}
 {-@
-swap :: l:Int -> Ix {l} -> Ix {l} -> (List Int -> (Maybe (Unit, List Int), [String]))
+swap :: l:Int -> Ix {l} -> Ix {l} -> (List Int -> Maybe (Unit, List Int))
 @-}
 swap :: Int -> Ix -> Ix -> Array Unit
 swap l i j = bindA (readA l i) (swap_aux1 l i j)
 
 -- {-@ reflect swap_aux1 @-}
 {-@
-swap_aux1 :: l:Int -> Ix {l} -> Ix {l} -> Int -> (List Int -> (Maybe (Unit, List Int), [String]))
+swap_aux1 :: l:Int -> Ix {l} -> Ix {l} -> Int -> (List Int -> Maybe (Unit, List Int))
 @-}
 swap_aux1 :: Int -> Ix -> Ix -> Int -> Array Unit
 swap_aux1 l i j x = bindA (readA l j) (swap_aux2 l i j x)
 
 -- {-@ reflect swap_aux2 @-}
 {-@
-swap_aux2 :: l:Int -> Ix {l} -> Ix {l} -> Int -> Int -> (List Int -> (Maybe (Unit, List Int), [String]))
+swap_aux2 :: l:Int -> Ix {l} -> Ix {l} -> Int -> Int -> (List Int -> Maybe (Unit, List Int))
 @-}
 swap_aux2 :: Int -> Ix -> Ix -> Int -> Int -> Array Unit
 swap_aux2 l i j x y = seqA (writeA l j x) (writeA l i y)
 
 -- quickpartition
 
--- {-@ reflect quickpartition_bounds @-}
--- {-@
--- quickpartition_bounds :: l:Int -> iLo:Ix {l} -> iHi:Ix {l} -> i:Ix {l} -> iEnd:Ix {l} -> p:Int -> Bool
--- @-}
--- quickpartition_bounds :: Int -> Ix -> Ix -> Ix -> Ix -> Int -> Bool
--- quickpartition_bounds l iLo iHi i iEnd p =
---   if i < sub1 iEnd
---     then add1 iHi < l && add1 i < l
---     else add1 iHi < l
-
 -- bounds invariants:
--- - iLo <= iHi
--- - iLo < iP
--- - iHi < iP
+-- - iHi <= iLo
+-- - iLo <= iP
+-- - iHi <= iP
 {-@ lazy quickpartition @-}
 {-@
 quickpartition ::
@@ -248,22 +187,15 @@ quickpartition ::
 @-}
 quickpartition :: Int -> Ix -> Ix -> Int -> Array Ix
 quickpartition l iLo iHi iP =
-  notesA [unwords ["PART", show iLo, show iHi, show iP]] `seqA`
-  snapshot `seqA`
-  notesA ["CHECK: iLo < iP: " ++ show (iLo < iP)] `seqA`
   if iLo < iP then
     bindA (readA l iLo) $ \lo ->
       bindA (readA l iP) $ \p ->
         if lo > p then
-          notesA ["CASE: lo > p"] `seqA`
           quickpartition l (add1 iLo `by` undefined) iHi iP
         else
-          notesA ["CASE: p <= lo"] `seqA`
           swap l iLo iHi `seqA`
           quickpartition l (add1 iLo `by` undefined) (add1 iHi `by` undefined) iP
   else
-    notesA ["CASE: iLo < iP"] `seqA`
-    notesA [unwords ["SWAP", show iHi, show iP]] `seqA`
     swap l iHi iP `seqA`
     returnA iHi
 
@@ -271,46 +203,59 @@ quickpartition l iLo iHi iP =
 
 -- bounds invariants:
 -- - i <= j
-{-@ lazy quicksort @-}
+{-@ lazy quicksort' @-}
 {-@
-quicksort ::
+quicksort' ::
   l:Int -> i:Ix {l} -> j:Ix {l} ->
-  (List Int -> (Maybe (Unit, List Int), [String])) / [j - i]
+  (List Int -> Maybe (Unit, List Int)) / [j - i]
 @-}
-quicksort :: Int -> Ix -> Ix -> Array Unit
-quicksort l i j =
-  notesA [unwords ["SORT", show i, show j]] `seqA`
-  snapshot `seqA`
+quicksort' :: Int -> Ix -> Ix -> Array Unit
+quicksort' l i j =
   if i < j
     then
       (bindA (quickpartition l i i j) $ \iP ->
         seqA
-          (quicksort l i (sub1 iP `by` undefined))
-          (quicksort l (add1 iP `by` undefined) j))
+          (quicksort' l i (sub1 iP `by` undefined))
+          (quicksort' l (add1 iP `by` undefined) j))
     else 
       returnA unit
 
-runQuicksort :: List Int -> Maybe (List Int)
-runQuicksort xs =
-  let l = lng xs
-   in if lng xs <= 0
-        then Just xs
-        else case quicksort l 0 0 xs of
-          (Just (_, xs'), ms) -> Just xs'
-          (Nothing, ms) -> Nothing
+{-@ lazy quicksort @-}
+{-@
+quicksort :: List Int -> Maybe (Unit, List Int)
+@-}
+quicksort :: List Int -> Maybe (Unit, List Int)
+quicksort xs = quicksort' (lng xs) 0 (sub1 (lng xs)) xs
 
-test :: IO ()
+test :: Maybe (Unit, List Int)
 test = do
   let ls = toList [7,6,5,1,2,4,3,1,1]
   -- let ls = toList [7,6,5,4,3,2,1]
-  -- let Just (_, ls', ms) = quickpartition 5 0 0 4 ls
-  let (res, ms) = quicksort (lng ls) 0 (sub1 (lng ls)) ls
-  case res of
-    Just (_, ls') -> do
-      putStrLn (unlines ms)
-      print ls'
-    Nothing -> do
-      putStrLn (unlines ms)
-      putStrLn "FAILURE"
+  quicksort ls
   
--- quicksort 5 0 4 (toList [5,1,2,4,3])
+delete :: Int -> [Int] -> [Int]
+delete x [] = []
+delete x (y:ys) = if x == y then ys else y : delete x ys 
+
+permutations :: [Int] -> [[Int]]
+permutations [] = [[]]
+permutations xs = do
+  x <- xs
+  let xs' = delete x xs
+  xs'' <- permutations xs'
+  return (x : xs'')
+  
+qs :: [Int] -> Maybe (List Int)
+qs xs = 
+  case quicksort (toList xs) of
+    Just (_, xs') -> Just xs' 
+    Nothing -> Nothing
+
+testN n = 
+  let ls = [1..n] in
+  all (== True) (map (== Just (toList ls)) [ qs xs | xs <- permutations ls ])
+
+main :: IO ()
+main = do
+  let f n = putStrLn $ "sorts all singleton lists of length " ++ show n ++ ": " ++ show (testN n)
+  mapM_ f [0..7]
