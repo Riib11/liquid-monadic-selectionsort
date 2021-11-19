@@ -1,4 +1,3 @@
-{-@ LIQUID "--compile-spec" @-}
 module QuickSort.Monadic where
 
 import Proof
@@ -44,8 +43,12 @@ instance Show a => Show (List a) where
   show Nil = "[]"
   show (Cons x xs) = show x ++ ":" ++ show xs
 
+{-@ reflect inBounds @-}
+inBounds :: Int -> Int -> Bool
+inBounds l i = 0 <= i && i < l
+
 {-@
-type Ix L = {i:Int | 0 <= i && i < L}
+type Ix L = {i:Int | inBounds L i}
 @-}
 type Ix = Int
 
@@ -178,32 +181,32 @@ swap_aux2 l i j x y = seqA (writeA l j x) (writeA l i y)
 -- bounds invariants:
 -- - iHi <= iLo
 -- - iLo <= iP
--- - iHi <= iP
-{-@ lazy quickpartition @-}
+{-@ automatic-instances quickpartition @-}
 {-@
 quickpartition ::
-  l:Int -> iLo:Ix {l} -> iHi:Ix {l} -> iP:Ix {l} -> 
-  Array (Ix {l}) / []
+  l:Int ->
+  iLf:Ix {l} ->
+  iLo:{iLo:Ix {l} | iLf <= iLo} ->
+  iHi:{iHi:Ix {l} | iLf <= iHi && iHi <= iLo} ->
+  iP:{iP:Ix {l} | iLo <= iP} ->
+  Array ({iP':Ix {l} | iLf <= iP' && iP' <= iP}) / [iP - iLo]
 @-}
-quickpartition :: Int -> Ix -> Ix -> Int -> Array Ix
-quickpartition l iLo iHi iP =
+quickpartition :: Int -> Ix -> Ix -> Ix -> Int -> Array Ix
+quickpartition l iLf iLo iHi iP =
   if iLo < iP then
     bindA (readA l iLo) $ \lo ->
       bindA (readA l iP) $ \p ->
         if lo > p then
-          quickpartition l (add1 iLo `by` undefined) iHi iP
+          quickpartition l iLf (add1 iLo) iHi iP
         else
           swap l iLo iHi `seqA`
-          quickpartition l (add1 iLo `by` undefined) (add1 iHi `by` undefined) iP
+          quickpartition l iLf (add1 iLo) (add1 iHi) iP
   else
     swap l iHi iP `seqA`
     returnA iHi
 
 -- quicksort
 
--- bounds invariants:
--- - i <= j
-{-@ lazy quicksort' @-}
 {-@
 quicksort' ::
   l:Int -> i:Ix {l} -> j:Ix {l} ->
@@ -211,51 +214,54 @@ quicksort' ::
 @-}
 quicksort' :: Int -> Ix -> Ix -> Array Unit
 quicksort' l i j =
-  if i < j
-    then
-      (bindA (quickpartition l i i j) $ \iP ->
-        seqA
-          (quicksort' l i (sub1 iP `by` undefined))
-          (quicksort' l (add1 iP `by` undefined) j))
-    else 
-      returnA unit
+  if i < j then
+    bindA (quickpartition l i i i j) $ \iP ->
+      seqA
+        (if 0 <= sub1 iP - i && sub1 iP - i < j - i && inBounds l (sub1 iP) then quicksort' l i (sub1 iP) else returnA unit)
+        (if 0 <= j - add1 iP && j - add1 iP < j - i && inBounds l (add1 iP) then quicksort' l (add1 iP) j else returnA unit)
+  else 
+    returnA unit
 
-{-@ lazy quicksort @-}
+{-@ automatic-instances quicksort @-}
 {-@
 quicksort :: List Int -> Maybe (Unit, List Int)
 @-}
 quicksort :: List Int -> Maybe (Unit, List Int)
-quicksort xs = quicksort' (lng xs) 0 (sub1 (lng xs)) xs
+quicksort xs =
+  if lng xs <= 0 then
+    Just (unit, xs)
+  else
+    quicksort' (lng xs) 0 (sub1 (lng xs)) xs
 
-test :: Maybe (Unit, List Int)
-test = do
-  let ls = toList [7,6,5,1,2,4,3,1,1]
-  -- let ls = toList [7,6,5,4,3,2,1]
-  quicksort ls
+-- test :: Maybe (Unit, List Int)
+-- test = do
+--   let ls = toList [7,6,5,1,2,4,3,1,1]
+--   -- let ls = toList [7,6,5,4,3,2,1]
+--   quicksort ls
   
-delete :: Int -> [Int] -> [Int]
-delete x [] = []
-delete x (y:ys) = if x == y then ys else y : delete x ys 
+-- delete :: Int -> [Int] -> [Int]
+-- delete x [] = []
+-- delete x (y:ys) = if x == y then ys else y : delete x ys 
 
-permutations :: [Int] -> [[Int]]
-permutations [] = [[]]
-permutations xs = do
-  x <- xs
-  let xs' = delete x xs
-  xs'' <- permutations xs'
-  return (x : xs'')
+-- permutations :: [Int] -> [[Int]]
+-- permutations [] = [[]]
+-- permutations xs = do
+--   x <- xs
+--   let xs' = delete x xs
+--   xs'' <- permutations xs'
+--   return (x : xs'')
   
-qs :: [Int] -> Maybe (List Int)
-qs xs = 
-  case quicksort (toList xs) of
-    Just (_, xs') -> Just xs' 
-    Nothing -> Nothing
+-- qs :: [Int] -> Maybe (List Int)
+-- qs xs = 
+--   case quicksort (toList xs) of
+--     Just (_, xs') -> Just xs' 
+--     Nothing -> Nothing
 
-testN n = 
-  let ls = [1..n] in
-  all (== True) (map (== Just (toList ls)) [ qs xs | xs <- permutations ls ])
+-- testN n = 
+--   let ls = [1..n] in
+--   all (== True) (map (== Just (toList ls)) [ qs xs | xs <- permutations ls ])
 
-main :: IO ()
-main = do
-  let f n = putStrLn $ "sorts all singleton lists of length " ++ show n ++ ": " ++ show (testN n)
-  mapM_ f [0..7]
+-- main :: IO ()
+-- main = do
+--   let f n = putStrLn $ "sorts all singleton lists of length " ++ show n ++ ": " ++ show (testN n)
+--   mapM_ f [0..7]
