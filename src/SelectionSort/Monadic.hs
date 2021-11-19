@@ -1,2 +1,0 @@
-module SelectionSort.Monadic where
-

@@ -10,6 +10,7 @@ type Proof = ()
 unreachable :: Proof
 unreachable = ()
 
+{-@ reflect impossible @-}
 {-@
 impossible :: {_:a | False} -> a
 @-}
@@ -20,37 +21,34 @@ impossible x = x
 trivial :: Proof
 trivial = ()
 
+{-@ reflect refinement @-}
+refinement :: a -> Proof
+refinement _ = trivial
+
 {-@ reflect by @-}
-{-@ by :: x:a -> b -> {x':a | x' = x} @-}
-by :: a -> b -> a
+by :: a -> Proof -> a
 by x _ = x
 
--- assumptions
+{-@ reflect by @-}
+by_refinement :: a -> b -> a
+by_refinement x y = x `by` refinement y
 
 {-@
-assume
-assume_eq :: x:Int -> y:Int -> {x == y}
+assume :: b:Bool -> {b}
 @-}
-assume_eq :: Int -> Int -> Proof
-assume_eq x y = trivial
+assume :: Bool -> Proof
+assume b = undefined
 
-{-@
-assume
-assume_le :: x:Int -> y:Int -> {x <= y}
-@-}
-assume_le :: Int -> Int -> Proof
-assume_le x y = trivial
+{-@ reflect begin @-}
+begin :: a -> Proof
+begin _ = trivial
 
-{-@
-assume
-assume_lt :: x:Int -> y:Int -> {x < y}
-@-}
-assume_lt :: Int -> Int -> Proof
-assume_lt x y = trivial
+infixl 3 ===
 
+{-@ infixl 3 === @-}
+{-@ reflect === @-}
 {-@
-assume
-assume_true :: b:Bool -> {b == True}
+(===) :: x:a -> y:{a | y == x} -> z:{a | z == x && z == y}
 @-}
-assume_true :: Bool -> Proof
-assume_true b = trivial
+(===) :: a -> a -> a
+x === y = y
