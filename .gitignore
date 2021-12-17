@@ -2,3 +2,4 @@
 .liquid
 tmp/
 *~
+*.DS_Store
