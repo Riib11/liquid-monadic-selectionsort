@@ -233,6 +233,12 @@ quicksort xs =
   else
     quicksort' (lng xs) 0 (sub1 (lng xs)) xs
 
+{-
+invariants:
+- permutation
+-}
+
+
 -- test :: Maybe (Unit, List Int)
 -- test = do
 --   let ls = toList [7,6,5,1,2,4,3,1,1]
