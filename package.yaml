@@ -24,7 +24,7 @@ description:
 dependencies:
   # - base == 4.15.0.0
   - liquidhaskell == 0.8.10.7
-  - liquid-base == 4.15.0.0
+  # - liquid-base == 4.15.0.0
 
 library:
   source-dirs: src
