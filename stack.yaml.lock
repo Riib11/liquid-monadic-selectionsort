@@ -76,7 +76,7 @@ packages:
     hackage: store-0.7.12@sha256:362327372c816f00cff4800d699d7f7ba015fa21fa7b3ad493094ce01b99b2bb,8071
 snapshots:
 - completed:
-    size: 594195
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/nightly/2021/10/29.yaml
-    sha256: 6eca2192c85fa4df1f93ac039285d960db6ccad2a786729ef10df4f0537ae929
-  original: nightly-2021-10-29
+    size: 586069
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/18/14.yaml
+    sha256: 87842ecbaa8ca9cee59a7e6be52369dbed82ed075cb4e0d152614a627e8fd488
+  original: lts-18.14

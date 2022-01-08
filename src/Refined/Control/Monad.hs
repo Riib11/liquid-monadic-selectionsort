@@ -1,37 +1,58 @@
--- {-# LANGUAGE RankNTypes #-}
-
--- {-@ LIQUID "--reflection" @-}
--- {-@ LIQUID "--typeclass" @-}
--- {-@ LIQUID "--aux-inline" @-}
--- {-@ LIQUID "--ple" @-}
+{-@ LIQUID "--reflection" @-}
+{-@ LIQUID "--typeclass" @-}
 
 module Refined.Control.Monad where
 
--- class F a where
---   {-@ f :: a -> Bool @-}
---   f :: a -> Bool
+import Proof
+import Relation.Equality.Prop
+
+{-@
+class Dflt a where
+  dflt :: a
+@-}
+class Dflt a where
+  dflt :: a
+
+{-@
+lem :: forall a. (Eq a, Dflt a) => f:(a -> a) -> x:a -> {f x == x}
+@-}
+lem :: forall a. (Eq a, Dflt a) => (a -> a) -> a -> Proof
+lem = undefined
+
+-- class PreMonad m where
+--   {-@
+--   ret :: forall a. a -> m a
+--   @-}
+--   ret :: forall a. a -> m a
+
+--   {-@
+--   bnd :: forall a b. m a -> (a -> m b) -> m b
+--   @-}
+--   bnd :: forall a b. m a -> (a -> m b) -> m b
+
+-- class Monad m where
+--   {-@
+--   ret :: forall a. a -> m a
+--   @-}
+--   ret :: forall a. a -> m a
+
+--   {-@
+--   bnd :: forall a b. m a -> (a -> m b) -> m b
+--   @-}
+--   bnd :: forall a b. m a -> (a -> m b) -> m b
+
+--   {-@
+--   idL :: forall a b. a:a -> k:(a -> m b) -> {bnd (ret a) k = k a}
+--   @-}
+--   idL :: forall a b. a -> (a -> m b) -> Proof
 
 -- {-@
--- class F a => G a where
---   g :: x:a -> {f x == True}
+-- idL :: forall a b. a:a -> k:(a -> m b) -> EqP (m b) {bnd (ret a) k} {k a}
 -- @-}
--- class F a => G a where
---   g :: a -> ()
+-- idL :: forall a b. a -> (a -> m b) -> EqualProp (m b)
 
--- -- import Relation.Equality.Prop
-
--- -- {-@
--- -- class PreMnd m where
--- --   ret :: forall a. a -> m a
--- --   bnd :: forall a b. m a -> (a -> m b) -> m b
--- -- @-}
--- -- class PreMnd m where
--- --   ret :: forall a. a -> m a
--- --   bnd :: forall a b. m a -> (a -> m b) -> m b
-
--- -- {-@
--- -- class PreMnd m => Mnd m where
--- --   idL :: forall a b. a:a -> k:(a -> m b) -> EqP (m b) {bnd (ret a) k} {k a}
--- -- @-}
--- -- class PreMnd m => Mnd m where
--- --   idL :: forall a b. a -> (a -> m b) -> EqualProp (m b)
+-- class PreMonad m => Monad m where
+-- {-@
+-- idL :: forall a b. a:a -> k:(a -> m b) -> EqP (m b) {bnd (ret a) k} {k a}
+-- @-}
+-- idL :: forall a b. a -> (a -> m b) -> EqualProp (m b)

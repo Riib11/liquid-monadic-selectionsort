@@ -8,7 +8,7 @@
 {-@ LIQUID "--no-totality" @-}
 -- {-@ LIQUID "--typeclass" @-}
 
-module QuickSort.MonadicV5 where
+module QuickSort.MonadicV6 where
 
 import Proof
 -- import Relation.Equality.Prop
@@ -67,6 +67,16 @@ leIx ZeroIx _ = True
 leIx (SucIx i) ZeroIx = False
 leIx (SucIx i) (SucIx j) = leIx i j
 
+add1Ix :: SNat n -> Ix n -> Ix n
+add1Ix SZero i = i
+add1Ix (SSuc SZero) i = i
+add1Ix (SSuc (SSuc n)) ZeroIx = undefined
+add1Ix (SSuc (SSuc n)) (SucIx i) = undefined
+
+-- add1Ix SZero i = i
+-- add1Ix (SSuc n) ZeroIx = SucIx ZeroIx
+-- add1Ix (SSuc n) (SucIx i) = undefined
+
 -- |
 -- = Vector
 data Vec :: Nat -> * -> * where
@@ -95,7 +105,7 @@ foldVec f a (Cons x xs) = foldVec f (f x a) xs
 -- |
 -- = Array
 
--- Arr
+-- Array
 
 -- {-@
 -- class Array arr where
@@ -183,27 +193,60 @@ sortedAt_aux2 e1 e2 = pureArray (e1 <= e2)
 -- |
 -- == Quicksort
 
+{-@ lazy quickpartition @-}
 {-@
 quickpartition ::
   (Array arr, Ord e) =>
+  len:SNat n ->
   iLf:Ix n ->
   iLo:{iLo:Ix n | leIx iLf iLo} ->
   iHi:{iHi:Ix n | leIx iLf iHi && leIx iHi iLo} ->
   iP:{iP:Ix n | leIx iLo iP} ->
   arr n e ({iP':Ix n | leIx iLf iP' && leIx iP' iP})
 @-}
-quickpartition :: (Array arr, Ord e) => Ix n -> Ix n -> Ix n -> Ix n -> arr n e (Ix n)
-quickpartition iLf iLo iHi iP =
+quickpartition :: (Array arr, Ord e) => SNat n -> Ix n -> Ix n -> Ix n -> Ix n -> arr n e (Ix n)
+quickpartition len iLf iLo iHi iP =
   if leIx iLo iP
-    then bindArray (readArray iLo) $ \lo ->
-      bindArray (readArray iP) $ \p ->
-        if lo > p
-          then undefined -- quickpartition iLf (SucIx iLo) iHi iP
-          else -- seqArray
-          --   (swap iLo iHi)
-          --   (quickpartition iLf (SucIx iLo) (SucIx iHi) iP)
-            undefined
+    then bindArray (readArray iLo) (quickpartition_aux1 len iLf iLo iHi iP)
     else
       seqArray
         (swap iHi iP)
         (pureArray iHi)
+
+{-@ lazy quickpartition_aux1 @-}
+{-@
+quickpartition_aux1 ::
+  (Array arr, Ord e) =>
+  len:SNat n ->
+  iLf:Ix n ->
+  iLo:{iLo:Ix n | leIx iLf iLo} ->
+  iHi:{iHi:Ix n | leIx iLf iHi && leIx iHi iLo} ->
+  iP:{iP:Ix n | leIx iLo iP} ->
+  e ->
+  arr n e ({iP':Ix n | leIx iLf iP' && leIx iP' iP})
+@-}
+quickpartition_aux1 :: (Array arr, Ord e) => SNat n -> Ix n -> Ix n -> Ix n -> Ix n -> e -> arr n e (Ix n)
+quickpartition_aux1 len iLf iLo iHi iP lo =
+  bindArray (readArray iP) (quickpartition_aux2 len iLf iLo iHi iP lo)
+
+{-@ lazy quickpartition_aux2 @-}
+{-@
+quickpartition_aux2 ::
+  (Array arr, Ord e) =>
+  len:SNat n ->
+  iLf:Ix n ->
+  iLo:{iLo:Ix n | leIx iLf iLo} ->
+  iHi:{iHi:Ix n | leIx iLf iHi && leIx iHi iLo} ->
+  iP:{iP:Ix n | leIx iLo iP} ->
+  e ->
+  e ->
+  arr n e ({iP':Ix n | leIx iLf iP' && leIx iP' iP})
+@-}
+quickpartition_aux2 :: (Array arr, Ord e) => SNat n -> Ix n -> Ix n -> Ix n -> Ix n -> e -> e -> arr n e (Ix n)
+quickpartition_aux2 len iLf iLo iHi iP lo p =
+  if lo > p
+    then quickpartition len iLf undefined iHi iP
+    else -- seqArray
+    --   (swap iLo iHi)
+    --   (quickpartition len iLf (SucIx iLo) (SucIx iHi) iP)
+      undefined
