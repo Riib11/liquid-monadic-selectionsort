@@ -5,40 +5,115 @@
 
 packages:
 - completed:
-    hackage: liquid-base-4.15.0.0@sha256:a28cc9217966f18ef02f9b7e7c060f7682187e2c37ca20ce80088cc28860eb35,9129
+    size: 647785
+    filepath: /Users/henry/Repositories/liquidhaskell/.stack-work/dist/x86_64-osx/Cabal-3.2.1.0/liquidhaskell-0.8.10.7.1.tar.gz
+    name: liquidhaskell
+    version: 0.8.10.7.1
+    sha256: b978d6861d212fd524cb5825b91c5e7440e0f35cb4da404c7c7b411f2a0b699b
+    pantry-tree:
+      size: 70790
+      sha256: 2f9c414ac48fa3c8d6bda1b2d6d2997f04c32d813de8f20f13c122b0228031fd
+  original:
+    filepath: /Users/henry/Repositories/liquidhaskell/.stack-work/dist/x86_64-osx/Cabal-3.2.1.0/liquidhaskell-0.8.10.7.1.tar.gz
+- completed:
+    size: 16148
+    filepath: /Users/henry/Repositories/liquidhaskell/liquid-base/.stack-work/dist/x86_64-osx/Cabal-3.2.1.0/liquid-base-4.14.3.0.tar.gz
+    name: liquid-base
+    version: 4.14.3.0
+    sha256: 867fba81e547aa56056b7b5e2f613903d2c236ed4fa9cb62acdd167e60bb6eb8
     pantry-tree:
       size: 14987
-      sha256: 02b9ddefb47927f2cefdba09f1ac7164a5aafd7f31bfb4a577fca8905c012325
+      sha256: d50f4f13ff814145d2b039294ba2f4e44291595536a2782540dd4f1e3e11aa1c
   original:
-    hackage: liquid-base-4.15.0.0@sha256:a28cc9217966f18ef02f9b7e7c060f7682187e2c37ca20ce80088cc28860eb35,9129
+    filepath: /Users/henry/Repositories/liquidhaskell/liquid-base/.stack-work/dist/x86_64-osx/Cabal-3.2.1.0/liquid-base-4.14.3.0.tar.gz
 - completed:
-    hackage: liquidhaskell-0.8.10.7@sha256:dd613a6a9c9c8eaa39015574955580415800e81f6f2c2b9ee3332608dce20831,15895
+    size: 6730
+    filepath: /Users/henry/Repositories/liquidhaskell/liquid-bytestring/.stack-work/dist/x86_64-osx/Cabal-3.2.1.0/liquid-bytestring-0.10.10.0.tar.gz
+    name: liquid-bytestring
+    version: 0.10.10.0
+    sha256: 5c911182cfe80b79a6f5d412ef6dd65f783d535dfb3cf88020e72b25814b1fb9
     pantry-tree:
-      size: 281592
-      sha256: d1900790fb0b4a76bf7663e6c559947c8beec0f0038f3f5a1e781de18ff34e4c
+      size: 1770
+      sha256: 7815ec4cb8fecc74e8809ba63849d2938e99bb5dc90e3f499312bfcb087b4bcf
   original:
-    hackage: liquidhaskell-0.8.10.7@sha256:dd613a6a9c9c8eaa39015574955580415800e81f6f2c2b9ee3332608dce20831,15895
+    filepath: /Users/henry/Repositories/liquidhaskell/liquid-bytestring/.stack-work/dist/x86_64-osx/Cabal-3.2.1.0/liquid-bytestring-0.10.10.0.tar.gz
 - completed:
-    hackage: hashable-1.3.3.0@sha256:7f3b67151162a1dfe8472dc30430af98ed5470801d3f4b6c9b8d7a7443c920d4,4068
+    size: 3551
+    filepath: /Users/henry/Repositories/liquidhaskell/liquid-containers/.stack-work/dist/x86_64-osx/Cabal-3.2.1.0/liquid-containers-0.6.2.1.tar.gz
+    name: liquid-containers
+    version: 0.6.2.1
+    sha256: 20b99a23ddf6ceb59d87df6c4b44580a949d53a5f8b1ad76fba769dd75916030
     pantry-tree:
-      size: 1110
-      sha256: 6160857b68b296172e66cb7a1d467cf11182cd2a5ddaec0af3b23b1d4fadd0b2
+      size: 2143
+      sha256: e0813348d68667e035d96bcd225b9d545693bf7827f40d41d86c4535cf120cb8
   original:
-    hackage: hashable-1.3.3.0@sha256:7f3b67151162a1dfe8472dc30430af98ed5470801d3f4b6c9b8d7a7443c920d4,4068
+    filepath: /Users/henry/Repositories/liquidhaskell/liquid-containers/.stack-work/dist/x86_64-osx/Cabal-3.2.1.0/liquid-containers-0.6.2.1.tar.gz
 - completed:
-    hackage: liquid-fixpoint-0.8.10.7@sha256:dee303753cf1adc8b071aa314179e26e784f3832d17b8317b114a0ac07818800,7980
+    size: 290174
+    filepath: /Users/henry/Repositories/liquidhaskell/liquid-fixpoint/.stack-work/dist/x86_64-osx/Cabal-3.2.1.0/liquid-fixpoint-0.8.10.7.1.tar.gz
+    name: liquid-fixpoint
+    version: 0.8.10.7.1
+    sha256: 538c8531f3efa3c5427ea57815b34b9f70f0c0acd7e089c4d339561b094b5904
     pantry-tree:
-      size: 45857
-      sha256: 991355b0b62906fd858b0d7dda7309cc37f71e155ca612cc023b9da0d5386e56
+      size: 15305
+      sha256: a0b099ece5645a2eff5049a2b58fefb5f946b8cbc9fe81f50b92fab1436411e6
   original:
-    hackage: liquid-fixpoint-0.8.10.7@sha256:dee303753cf1adc8b071aa314179e26e784f3832d17b8317b114a0ac07818800,7980
+    filepath: /Users/henry/Repositories/liquidhaskell/liquid-fixpoint/.stack-work/dist/x86_64-osx/Cabal-3.2.1.0/liquid-fixpoint-0.8.10.7.1.tar.gz
 - completed:
-    hackage: liquid-ghc-prim-0.7.0@sha256:8d99d771235d388ed54393faa2712c880e60b659fa574877fc5f383d4d49f4ed,1763
+    size: 3023
+    filepath: /Users/henry/Repositories/liquidhaskell/liquid-ghc-prim/.stack-work/dist/x86_64-osx/Cabal-3.2.1.0/liquid-ghc-prim-0.6.1.tar.gz
+    name: liquid-ghc-prim
+    version: 0.6.1
+    sha256: f0b85410abab8a91d73d1da233eb3ee7cf14f0b4344ce052735125c326bbb112
     pantry-tree:
       size: 912
-      sha256: 2e85095d397912b2d5b65054cd613e93dd7aa31ed4a4ff4fd265be207ece35e0
+      sha256: f4a142e73996a292cf2eae8c364f71fe9a1195937801cad720ac1394db1bd3ae
   original:
-    hackage: liquid-ghc-prim-0.7.0@sha256:8d99d771235d388ed54393faa2712c880e60b659fa574877fc5f383d4d49f4ed,1763
+    filepath: /Users/henry/Repositories/liquidhaskell/liquid-ghc-prim/.stack-work/dist/x86_64-osx/Cabal-3.2.1.0/liquid-ghc-prim-0.6.1.tar.gz
+- completed:
+    size: 1813
+    filepath: /Users/henry/Repositories/liquidhaskell/liquid-parallel/.stack-work/dist/x86_64-osx/Cabal-3.2.1.0/liquid-parallel-3.2.2.0.tar.gz
+    name: liquid-parallel
+    version: 3.2.2.0
+    sha256: c49a8d7034bd338cb8bba2838d8192d3f52d19d1c29b41b6aef7e7a2626cc9f3
+    pantry-tree:
+      size: 429
+      sha256: 2d82f14c698ec7653987a94b43b58618971511ea3e50cec54089fd4e72590f77
+  original:
+    filepath: /Users/henry/Repositories/liquidhaskell/liquid-parallel/.stack-work/dist/x86_64-osx/Cabal-3.2.1.0/liquid-parallel-3.2.2.0.tar.gz
+- completed:
+    size: 4665
+    filepath: /Users/henry/Repositories/liquidhaskell/liquid-platform/.stack-work/dist/x86_64-osx/Cabal-3.2.1.0/liquid-platform-0.8.10.2.tar.gz
+    name: liquid-platform
+    version: 0.8.10.2
+    sha256: 9ec5c965c1d565e29f860a617e2dd7a8d1872e1467e8d5e7c0c2810102651514
+    pantry-tree:
+      size: 275
+      sha256: 0e68d2ca9590caba670977e06dcbdf9a2968f4d593074df461f5312febe02149
+  original:
+    filepath: /Users/henry/Repositories/liquidhaskell/liquid-platform/.stack-work/dist/x86_64-osx/Cabal-3.2.1.0/liquid-platform-0.8.10.2.tar.gz
+- completed:
+    size: 11181
+    filepath: /Users/henry/Repositories/liquidhaskell/liquid-prelude/.stack-work/dist/x86_64-osx/Cabal-3.2.1.0/liquid-prelude-0.8.10.2.tar.gz
+    name: liquid-prelude
+    version: 0.8.10.2
+    sha256: d0d58c493421865cd3e82aa7b2c4fed7ad89fedea31d537dc6947b134ce5cfe0
+    pantry-tree:
+      size: 1029
+      sha256: 17fffd9d59ef7d3e7fa04b89174250bab84af77822d3f5de0124d608aa6827c6
+  original:
+    filepath: /Users/henry/Repositories/liquidhaskell/liquid-prelude/.stack-work/dist/x86_64-osx/Cabal-3.2.1.0/liquid-prelude-0.8.10.2.tar.gz
+- completed:
+    size: 2932
+    filepath: /Users/henry/Repositories/liquidhaskell/liquid-vector/.stack-work/dist/x86_64-osx/Cabal-3.2.1.0/liquid-vector-0.12.1.2.tar.gz
+    name: liquid-vector
+    version: 0.12.1.2
+    sha256: d9121e482ab815c4cc16b683ea50f574cc689c9957b7e5f9e1a96a9f9243eb59
+    pantry-tree:
+      size: 1724
+      sha256: e8c34432bbbb4226f96e8bed70a6c4582e67dbfa123057d113c400a261aa0f2d
+  original:
+    filepath: /Users/henry/Repositories/liquidhaskell/liquid-vector/.stack-work/dist/x86_64-osx/Cabal-3.2.1.0/liquid-vector-0.12.1.2.tar.gz
 - completed:
     hackage: optparse-applicative-0.15.1.0@sha256:29ff6146aabf54d46c4c8788e8d1eadaea27c94f6d360c690c5f6c93dac4b07e,4810
     pantry-tree:
@@ -54,29 +129,15 @@ packages:
   original:
     hackage: recursion-schemes-5.2.2@sha256:4d346a1ac4a31226b2eceb15bd815a4aa5cec3042f069322095ba2ce32224e50,3684
 - completed:
-    hackage: megaparsec-8.0.0@sha256:362f85e243ecbcb550e1de6e5c74ba5a50c09edaa1208c99bc5b9fd242227fc6,3808
-    pantry-tree:
-      size: 1446
-      sha256: 955117c00a86970f2d0c215f33cf5293b16589c04678a0a790c03368ab6fd0aa
-  original:
-    hackage: megaparsec-8.0.0@sha256:362f85e243ecbcb550e1de6e5c74ba5a50c09edaa1208c99bc5b9fd242227fc6,3808
-- completed:
-    hackage: rest-rewrite-0.1.1@sha256:7e180d3feb7185e41e3813e4d5a7aa8dfc1cfb479e754e22e706bcc99a26cf35,4793
+    hackage: rest-rewrite-0.1.1@sha256:eb7a6bc86dec6cb22c4af24d0dcf25ce4dac70f467d44a4e7901ac53d3c3ff5b,4983
     pantry-tree:
       size: 3353
-      sha256: 136fea6611049098a74a0b13507dfa914b3eff5d4bca6ef0514b35bc478bdb15
+      sha256: 6d3eb8c3dbecf65e82db3bc1b4e3ed1a2d5884b7db1b42ba0a30036cdc7533ed
   original:
-    hackage: rest-rewrite-0.1.1@sha256:7e180d3feb7185e41e3813e4d5a7aa8dfc1cfb479e754e22e706bcc99a26cf35,4793
-- completed:
-    hackage: store-0.7.12@sha256:362327372c816f00cff4800d699d7f7ba015fa21fa7b3ad493094ce01b99b2bb,8071
-    pantry-tree:
-      size: 1292
-      sha256: 580ced2e7269701270a4f94de55c39e2d0589393f999ccba99ecc3cf17d93cae
-  original:
-    hackage: store-0.7.12@sha256:362327372c816f00cff4800d699d7f7ba015fa21fa7b3ad493094ce01b99b2bb,8071
+    hackage: rest-rewrite-0.1.1@sha256:eb7a6bc86dec6cb22c4af24d0dcf25ce4dac70f467d44a4e7901ac53d3c3ff5b,4983
 snapshots:
 - completed:
-    size: 594195
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/nightly/2021/10/29.yaml
-    sha256: 6eca2192c85fa4df1f93ac039285d960db6ccad2a786729ef10df4f0537ae929
-  original: nightly-2021-10-29
+    size: 586069
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/18/14.yaml
+    sha256: 87842ecbaa8ca9cee59a7e6be52369dbed82ed075cb4e0d152614a627e8fd488
+  original: lts-18.14

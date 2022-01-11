@@ -26,6 +26,7 @@ source-repository head
 library
   exposed-modules:
       Bot
+      Foo
       Imperative.Array
       Imperative.ArrayOld
       Proof
@@ -58,8 +59,7 @@ library
       FlexibleInstances
       UndecidableInstances
       MultiParamTypeClasses
-  ghc-options: -fplugin=LiquidHaskell -fplugin-opt=LiquidHaskell:--reflection -fplugin-opt=LiquidHaskell:--ple-local -fplugin-opt=LiquidHaskell:--diff -fplugin-opt=LiquidHaskell:--short-names -fplugin-opt=LiquidHaskell:--prune-unsorted
   build-depends:
-      liquid-base ==4.15.0.0
-    , liquidhaskell ==0.8.10.7
+      liquid-base ==4.14.3.0
+    , liquidhaskell ==0.8.10.7.1
   default-language: Haskell2010

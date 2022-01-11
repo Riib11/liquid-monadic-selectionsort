@@ -23,8 +23,10 @@ description:
 
 dependencies:
   # - base == 4.15.0.0
-  - liquidhaskell == 0.8.10.7
-  - liquid-base == 4.15.0.0
+  - liquidhaskell == 0.8.10.7.1
+  - liquid-base == 4.14.3.0
+
+# - liquid-base == 4.15.0.0
 
 library:
   source-dirs: src
@@ -36,13 +38,13 @@ library:
     - FlexibleInstances
     - UndecidableInstances
     - MultiParamTypeClasses
-  ghc-options:
-    - -fplugin=LiquidHaskell
-    - -fplugin-opt=LiquidHaskell:--reflection
-    - -fplugin-opt=LiquidHaskell:--ple-local
-    - -fplugin-opt=LiquidHaskell:--diff
-    - -fplugin-opt=LiquidHaskell:--short-names
-    - -fplugin-opt=LiquidHaskell:--prune-unsorted
+  # ghc-options:
+  #   - -fplugin=LiquidHaskell
+  #   - -fplugin-opt=LiquidHaskell:--reflection
+  #   - -fplugin-opt=LiquidHaskell:--ple-local
+  #   - -fplugin-opt=LiquidHaskell:--diff
+  #   - -fplugin-opt=LiquidHaskell:--short-names
+  #   - -fplugin-opt=LiquidHaskell:--prune-unsorted
 #
 # executables:
 #   liquid-monadic-selectionsort-exe:

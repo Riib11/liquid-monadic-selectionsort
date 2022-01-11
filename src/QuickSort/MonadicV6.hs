@@ -5,8 +5,9 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 
-{-@ LIQUID "--no-totality" @-}
--- {-@ LIQUID "--typeclass" @-}
+{-@ LIQUID "--ple" @-}
+-- {-@ LIQUID "--no-totality" @-}
+{-@ LIQUID "--typeclass" @-}
 
 module QuickSort.MonadicV6 where
 
@@ -50,32 +51,61 @@ data SNat :: Nat -> * where
 
 {-@
 data Ix :: Nat -> * where
-  ZeroIx :: Ix (Suc n)
-  SucIx :: Ix n -> Ix (Suc n)
+  IxZero :: Ix (Suc n)
+  IxSuc :: Ix n -> Ix (Suc n)
 @-}
 data Ix :: Nat -> * where
-  ZeroIx :: Ix (Suc n)
-  SucIx :: Ix n -> Ix (Suc n)
+  IxZero :: Ix (Suc n)
+  IxSuc :: Ix n -> Ix (Suc n)
 
 instance Eq (Ix n) where
-  ZeroIx == ZeroIx = True
-  SucIx i == SucIx j = i == j
+  IxZero == IxZero = True
+  IxSuc i == IxSuc j = i == j
 
 {-@ reflect leIx @-}
 leIx :: Ix n -> Ix n -> Bool
-leIx ZeroIx _ = True
-leIx (SucIx i) ZeroIx = False
-leIx (SucIx i) (SucIx j) = leIx i j
+leIx IxZero _ = True
+leIx (IxSuc i) IxZero = False
+leIx (IxSuc i) (IxSuc j) = leIx i j
 
+{-@ reflect ltIx @-}
+ltIx :: Ix n -> Ix n -> Bool
+ltIx IxZero IxZero = False
+ltIx IxZero (IxSuc j) = True
+ltIx (IxSuc i) IxZero = False
+ltIx (IxSuc i) (IxSuc j) = ltIx i j
+
+maxIx :: SNat (Suc n) -> Ix (Suc n)
+maxIx (SSuc SZero) = IxZero
+
+{-@ reflect isMaxIx @-}
+isMaxIx :: SNat n -> Ix n -> Bool
+isMaxIx SZero i = True
+isMaxIx (SSuc SZero) IxZero = True
+isMaxIx (SSuc (SSuc SZero)) IxZero = False
+isMaxIx (SSuc (SSuc SZero)) (IxSuc IxZero) = False
+isMaxIx (SSuc n@(SSuc _)) IxZero = False
+isMaxIx (SSuc n@(SSuc _)) (IxSuc i) = isMaxIx n i
+
+{-@ reflect add1Ix @-}
 add1Ix :: SNat n -> Ix n -> Ix n
 add1Ix SZero i = i
-add1Ix (SSuc SZero) i = i
-add1Ix (SSuc (SSuc n)) ZeroIx = undefined
-add1Ix (SSuc (SSuc n)) (SucIx i) = undefined
+add1Ix (SSuc SZero) IxZero = IxZero
+add1Ix (SSuc (SSuc SZero)) IxZero = IxSuc IxZero
+add1Ix (SSuc (SSuc SZero)) (IxSuc IxZero) = IxSuc IxZero
+add1Ix (SSuc n@(SSuc _)) IxZero = IxSuc IxZero
+add1Ix (SSuc n@(SSuc _)) (IxSuc i) = IxSuc (add1Ix n i)
 
--- add1Ix SZero i = i
--- add1Ix (SSuc n) ZeroIx = SucIx ZeroIx
--- add1Ix (SSuc n) (SucIx i) = undefined
+-- {-@ reflect sub1Ix @-}
+sub1Ix :: SNat n -> Ix n -> Ix n
+sub1Ix SZero i = i
+sub1Ix (SSuc n) IxZero = IxZero
+sub1Ix (SSuc n) (IxSuc i) = undefined
+
+-- sub1Ix SZero i = i
+-- sub1Ix (SSuc n) IxZero = IxZero
+-- sub1Ix (SSuc n) (IxSuc IxZero) = IxZero
+-- sub1Ix (SSuc n) (IxSuc (IxSuc i)) = undefined
 
 -- |
 -- = Vector
@@ -206,12 +236,12 @@ quickpartition ::
 @-}
 quickpartition :: (Array arr, Ord e) => SNat n -> Ix n -> Ix n -> Ix n -> Ix n -> arr n e (Ix n)
 quickpartition len iLf iLo iHi iP =
-  if leIx iLo iP
+  if ltIx iLo iP
     then bindArray (readArray iLo) (quickpartition_aux1 len iLf iLo iHi iP)
     else
       seqArray
         (swap iHi iP)
-        (pureArray iHi)
+        (pureArray (iHi `by` undefined `by` assume (leIx iLf iHi)))
 
 {-@ lazy quickpartition_aux1 @-}
 {-@
@@ -221,7 +251,7 @@ quickpartition_aux1 ::
   iLf:Ix n ->
   iLo:{iLo:Ix n | leIx iLf iLo} ->
   iHi:{iHi:Ix n | leIx iLf iHi && leIx iHi iLo} ->
-  iP:{iP:Ix n | leIx iLo iP} ->
+  iP:{iP:Ix n | ltIx iLo iP} ->
   e ->
   arr n e ({iP':Ix n | leIx iLf iP' && leIx iP' iP})
 @-}
@@ -237,7 +267,7 @@ quickpartition_aux2 ::
   iLf:Ix n ->
   iLo:{iLo:Ix n | leIx iLf iLo} ->
   iHi:{iHi:Ix n | leIx iLf iHi && leIx iHi iLo} ->
-  iP:{iP:Ix n | leIx iLo iP} ->
+  iP:{iP:Ix n | ltIx iLo iP} ->
   e ->
   e ->
   arr n e ({iP':Ix n | leIx iLf iP' && leIx iP' iP})
@@ -245,8 +275,111 @@ quickpartition_aux2 ::
 quickpartition_aux2 :: (Array arr, Ord e) => SNat n -> Ix n -> Ix n -> Ix n -> Ix n -> e -> e -> arr n e (Ix n)
 quickpartition_aux2 len iLf iLo iHi iP lo p =
   if lo > p
-    then quickpartition len iLf undefined iHi iP
-    else -- seqArray
-    --   (swap iLo iHi)
-    --   (quickpartition len iLf (SucIx iLo) (SucIx iHi) iP)
-      undefined
+    then
+      let iLo' = add1Ix len iLo
+       in quickpartition
+            len
+            iLf
+            (iLo' `by` leIx_trans iLf iLo iLo' trivial (leIx_add1Ix len iLo))
+            (iHi `by` leIx_trans iHi iLo iLo' trivial (leIx_add1Ix len iLo))
+            (iP `by` ltIx_imp_leIx_add1Ix len iLo iP)
+    else
+      let iLo' = add1Ix len iLo
+          iHi' = add1Ix len iHi
+       in seqArray
+            (swap iLo iHi)
+            ( quickpartition
+                len
+                iLf
+                (iLo' `by` leIx_trans iLf iLo iLo' trivial (leIx_add1Ix len iLo))
+                ( iHi'
+                    `by` leIx_trans iLf iHi iHi' trivial (leIx_add1Ix len iHi)
+                    `by` leIx_add1Ix_add1Ix len iHi iLo
+                )
+                (iP `by` ltIx_imp_leIx_add1Ix len iLo iP)
+            )
+
+-- {-@ lazy quicksort_aux1 @-}
+{-@
+quicksort_aux1 ::
+  (Array arr, Ord e) =>
+  len:SNat n ->
+  i:Ix n ->
+  j:Ix n ->
+  arr n e Unit
+@-}
+quicksort_aux1 :: (Array arr, Ord e) => SNat n -> Ix n -> Ix n -> arr n e Unit
+quicksort_aux1 len i j =
+  if ltIx i j
+    then
+      bindArray
+        ( quickpartition
+            len
+            i
+            (i `by` leIx_refl i)
+            (i `by` leIx_refl i)
+            (j `by` ltIx_imp_leIx i j)
+        )
+        (quicksort_aux2 len i j)
+    else pureArray unit
+
+-- {-@ lazy quicksort_aux2 @-}
+{-@
+quicksort_aux2 ::
+  (Array arr, Ord e) =>
+  len:SNat n ->
+  i:Ix n ->
+  j:{j:Ix n | ltIx i j} ->
+  iP:Ix n ->
+  arr n e Unit
+@-}
+quicksort_aux2 :: (Array arr, Ord e) => SNat n -> Ix n -> Ix n -> Ix n -> arr n e Unit
+quicksort_aux2 len i j IxZero = undefined
+quicksort_aux2 len i j iP@(IxSuc _) =
+  seqArray
+    ( if leIx i (sub1Ix len iP) && ltIx (sub1Ix len iP) j && iP /= IxZero
+        then quicksort_aux1 len i (sub1Ix len iP)
+        else pureArray unit
+    )
+    ( if leIx (add1Ix len iP) j && ltIx i iP && iP /= maxIx len
+        then quicksort_aux1 len (add1Ix len iP) j
+        else pureArray unit
+    )
+
+{-@
+ltIx_imp_leIx_add1Ix :: n:SNat n -> i:Ix n -> {j:Ix n | ltIx i j} -> {leIx (add1Ix n i) j}
+@-}
+ltIx_imp_leIx_add1Ix :: SNat n -> Ix n -> Ix n -> Proof
+ltIx_imp_leIx_add1Ix n i j = undefined
+
+{-@
+ltIx_imp_leIx :: i:Ix n -> j:{Ix n | ltIx i j} -> {leIx i j}
+@-}
+ltIx_imp_leIx :: Ix n -> Ix n -> Proof
+ltIx_imp_leIx i j = undefined
+
+{-@
+leIx_add1Ix :: n:SNat n -> i:Ix n -> {leIx i (add1Ix n i)}
+@-}
+leIx_add1Ix :: SNat n -> Ix n -> Proof
+leIx_add1Ix n i = undefined
+
+{-@
+leIx_add1Ix_add1Ix :: n:SNat n -> i:Ix n -> {j:Ix n | leIx i j} -> {leIx (add1Ix n i) (add1Ix n j)}
+@-}
+leIx_add1Ix_add1Ix :: SNat n -> Ix n -> Ix n -> Proof
+leIx_add1Ix_add1Ix n i j = undefined
+
+{-@
+leIx_trans :: i:Ix n -> j:Ix n -> k:Ix n -> {_:Proof | leIx i j} -> {_:Proof | leIx j k} -> {leIx i k}
+@-}
+leIx_trans :: Ix n -> Ix n -> Ix n -> Proof -> Proof -> Proof
+leIx_trans i j k leIx_i_j leIx_j_k = undefined
+
+{-@ automatic-instances leIx_refl @-}
+{-@
+leIx_refl :: i:Ix n -> {leIx i i}
+@-}
+leIx_refl :: Ix n -> Proof
+leIx_refl IxZero = trivial
+leIx_refl (IxSuc i) = leIx_refl i

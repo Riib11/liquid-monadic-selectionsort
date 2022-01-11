@@ -3,21 +3,23 @@
 
 module Refined.Control.Monad where
 
-import Proof
-import Relation.Equality.Prop
+-- import Proof
+-- import Relation.Equality.Prop
+
+class C t where
+  {-@
+  f :: t -> t
+  @-}
+  f :: t -> t
+
+  {-@ law :: x:t -> {f x == f (f x)} @-}
+  law :: t -> ()
 
 {-@
-class Dflt a where
-  dflt :: a
+lem :: C t => x:t -> {f x = f (f x) }
 @-}
-class Dflt a where
-  dflt :: a
-
-{-@
-lem :: forall a. (Eq a, Dflt a) => f:(a -> a) -> x:a -> {f x == x}
-@-}
-lem :: forall a. (Eq a, Dflt a) => (a -> a) -> a -> Proof
-lem = undefined
+lem :: C t => t -> ()
+lem x = law x
 
 -- class PreMonad m where
 --   {-@
