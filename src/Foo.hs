@@ -5,15 +5,34 @@ module Foo where
 
 class C t where
   {-@
-  f :: t -> t
+  f :: {t:t | t <= 10} -> t
   @-}
   f :: t -> t
 
-  {-@ law :: x:t -> {f x == f (f x)} @-}
-  law :: t -> ()
+instance C Bool where
+  f x = x
 
 {-@
-lem :: C t => x:t -> {f x = f (f x)}
+lem :: {f True = True}
 @-}
-lem :: C t => t -> ()
-lem x = law x
+lem :: ()
+lem = ()
+
+{-@ reflect g @-}
+g :: C t => t -> t
+g t = f (f t)
+
+-- class C t where
+--   {-@
+--   f :: t -> t
+--   @-}
+--   f :: t -> t
+
+--   {-@ law :: x:t -> {f x == f (f x)} @-}
+--   law :: t -> ()
+
+-- {-@
+-- lem :: C t => x:t -> {f x = f (f x)}
+-- @-}
+-- lem :: C t => t -> ()
+-- lem x = law x
