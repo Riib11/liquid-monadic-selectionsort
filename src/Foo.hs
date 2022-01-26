@@ -1,38 +1,39 @@
+{-# LANGUAGE ExplicitForAll #-}
+{-# LANGUAGE KindSignatures #-}
+
 {-@ LIQUID "--reflection" @-}
 {-@ LIQUID "--typeclass" @-}
 
 module Foo where
 
-class C t where
-  {-@
-  f :: {t:t | t <= 10} -> t
-  @-}
-  f :: t -> t
-
-instance C Bool where
-  f x = x
+{-@ type Proof = () @-}
+type Proof = ()
 
 {-@
-lem :: {f True = True}
+type Equal a X Y = pr:(a -> Bool) -> {pr X = pr Y}
 @-}
-lem :: ()
-lem = ()
+type Equal a = (a -> Bool) -> Proof
 
-{-@ reflect g @-}
-g :: C t => t -> t
-g t = f (f t)
+{-@ type Ix = Int @-}
+type Ix = Int
 
--- class C t where
---   {-@
---   f :: t -> t
---   @-}
---   f :: t -> t
+{-@ type El = Int @-}
+type El = Int
 
---   {-@ law :: x:t -> {f x == f (f x)} @-}
---   law :: t -> ()
+{-@ reflect inBounds @-}
+inBounds :: forall m. Array m => Ix -> m Bool
+inBounds i = bindArray (len :: Array m => m Ix) (inBounds_aux i)
 
--- {-@
--- lem :: C t => x:t -> {f x = f (f x)}
--- @-}
--- lem :: C t => t -> ()
--- lem x = law x
+{-@ reflect inBounds_aux @-}
+inBounds_aux :: forall m. Array m => Ix -> Ix -> m Bool
+inBounds_aux i l = pureArray (i < l)
+
+class Array (m :: * -> *) where
+  {-@ pureArray :: forall a. a -> m a @-}
+  pureArray :: forall a. a -> m a
+
+  {-@ bindArray :: forall a b. m a -> (a -> m b) -> m b @-}
+  bindArray :: forall a b. m a -> (a -> m b) -> m b
+
+  {-@ len :: m Ix @-}
+  len :: m Ix
