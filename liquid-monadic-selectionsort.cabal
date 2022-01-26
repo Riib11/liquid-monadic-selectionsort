@@ -30,18 +30,7 @@ library
       Imperative.Array
       Imperative.ArrayOld
       Proof
-      QuickSort.Monadic
-      QuickSort.MonadicV1
-      QuickSort.MonadicV11
-      QuickSort.MonadicV2
-      QuickSort.MonadicV3
-      QuickSort.MonadicV4
-      QuickSort.MonadicV5
-      QuickSort.MonadicV6
-      QuickSort.MonadicV7
-      QuickSort.MonadicV8
-      QuickSort.MonadicV9
-      QuickSort.Pure
+      QuickSort.Array
       Refined.Control.Monad
       Refined.Data.Bool
       Refined.Data.Int

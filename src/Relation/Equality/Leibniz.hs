@@ -3,7 +3,7 @@ module Relation.Equality.Leibniz where
 import Proof
 
 {-@
-type Equal a X Y = pr:(a -> Bool) -> {pr X = pr Y}
+type Equal a X Y = prop:(a -> Bool) -> {prop X = prop Y}
 @-}
 type Equal a = (a -> Bool) -> Proof
 
@@ -26,7 +26,7 @@ contractability :: (a -> b) -> (a -> b) -> Equal (a -> b) -> a -> Equal b
 contractability f g eq a pr = trivial
 
 {-@
-inject :: x:a -> y:a -> {_:Proof | x == y} -> Equal a {x} {y}
+inject :: x:a -> y:{y:a | x = y} -> Equal a {x} {y}
 @-}
 inject :: a -> a -> Proof -> Equal a
 inject x y eq = reflexivity (x `by` eq)
@@ -36,3 +36,10 @@ assume extract :: x:a -> y:a -> Equal a {x} {y} -> {x == y}
 @-}
 extract :: a -> a -> Equal a -> Proof
 extract x y eq = trivial
+
+{-@
+assumeEqual :: x:a -> y:a -> Equal a {x} {y}
+@-}
+assumeEqual :: a -> a -> Equal a
+assumeEqual _ _ = undefined
+
