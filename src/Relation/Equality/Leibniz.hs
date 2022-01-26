@@ -1,3 +1,7 @@
+{-# LANGUAGE ExplicitForAll #-}
+
+{-@ LIQUID "--reflection" @-}
+
 module Relation.Equality.Leibniz where
 
 import Proof
@@ -26,10 +30,10 @@ contractability :: (a -> b) -> (a -> b) -> Equal (a -> b) -> a -> Equal b
 contractability f g eq a pr = trivial
 
 {-@
-inject :: x:a -> y:{y:a | x = y} -> Equal a {x} {y}
+inject :: forall a. x:a -> y:{y:a | x = y} -> Equal a {x} {y}
 @-}
-inject :: a -> a -> Proof -> Equal a
-inject x y eq = reflexivity (x `by` eq)
+inject :: forall a. a -> a -> Equal a
+inject x y = reflexivity x 
 
 {-@
 assume extract :: x:a -> y:a -> Equal a {x} {y} -> {x == y}

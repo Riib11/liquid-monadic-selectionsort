@@ -38,13 +38,12 @@ library:
     - FlexibleInstances
     - UndecidableInstances
     - MultiParamTypeClasses
-  # ghc-options:
-  #   - -fplugin=LiquidHaskell
-  #   - -fplugin-opt=LiquidHaskell:--reflection
-  #   - -fplugin-opt=LiquidHaskell:--ple-local
-  #   - -fplugin-opt=LiquidHaskell:--diff
-  #   - -fplugin-opt=LiquidHaskell:--short-names
-  #   - -fplugin-opt=LiquidHaskell:--prune-unsorted
+  ghc-options:
+    - -fplugin=LiquidHaskell
+    - -fplugin-opt=LiquidHaskell:--reflection
+    - -fplugin-opt=LiquidHaskell:--ple-local
+    - -fplugin-opt=LiquidHaskell:--short-names
+    - -fplugin-opt=LiquidHaskell:--prune-unsorted
 #
 # executables:
 #   liquid-monadic-selectionsort-exe:
