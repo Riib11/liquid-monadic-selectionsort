@@ -155,11 +155,16 @@ kleisli_proto :: (m b -> (b -> m c) -> m c) -> (a -> m b) -> (b -> m c) -> (a ->
 kleisli_proto b k1 k2 a = b (k1 a) k2
 
 class Array (m :: * -> *) where
+
+  -- monad fields
+  
   {-@ pureArray :: forall a. a -> m a @-}
   pureArray :: forall a. a -> m a
 
   {-@ bindArray :: forall a b. m a -> (a -> m b) -> m b @-}
   bindArray :: forall a b. m a -> (a -> m b) -> m b
+
+  -- monad laws
 
   {-@
   pureBindArray :: forall a b. a:a -> k:(a -> m b) -> Equal (m b) {bindArray (pureArray a) k} {k a}
@@ -176,8 +181,18 @@ class Array (m :: * -> *) where
   @-}
   assocArray :: forall a b c. m a -> (a -> m b) -> (b -> m c) -> Equal (m c)
 
+  -- array fields
+
   {-@ lengthArray :: m Ix @-}
   lengthArray :: m Ix
+
+  {-@
+  lengthArray_positive ::
+    Equal (m Bool)
+      {bindArray lengthArray (pureArray . (<= 0))}
+      {pureArray True}
+  @-}
+  lengthArray_positive :: Equal (m Bool)
 
   {-@
   readArray ::
@@ -199,6 +214,9 @@ class Array (m :: * -> *) where
     m Unit
   @-}
   writeArray :: Ix -> Equal (m Bool) -> El -> m Unit
+
+  -- array laws
+  -- TODO
 
 {-@ reflect fmapArray @-}
 fmapArray :: forall m a b. Array m => (a -> b) -> m a -> m b
