@@ -7,7 +7,6 @@
 {-@ LIQUID "--ple-local" @-}
 -- {-@ LIQUID "--short-names" @-}
 
-
 module QuickSort.Array where
 
 -- Proof
@@ -85,13 +84,13 @@ reflexivity a pr = trivial
 {-@
 symmetry :: x:a -> y:a -> Equal a {x} {y} -> Equal a {y} {x}
 @-}
-symmetry :: a -> a -> Equal a -> Equal a 
+symmetry :: a -> a -> Equal a -> Equal a
 symmetry x y eq_x_y = undefined
 
 {-@
 transitivity :: x:a -> y:a -> z:a -> Equal a {x} {y} -> Equal a {y} {z} -> Equal a {x} {z}
 @-}
-transitivity :: a -> a -> a -> Equal a -> Equal a -> Equal a 
+transitivity :: a -> a -> a -> Equal a -> Equal a -> Equal a
 transitivity x y z eq_x_y eq_y_z = undefined
 
 {-@
@@ -116,7 +115,7 @@ contractability f g eq a pr = trivial
 inject :: forall a. x:a -> y:{y:a | x = y} -> Equal a {x} {y}
 @-}
 inject :: forall a. a -> a -> Equal a
-inject x y = reflexivity x 
+inject x y = reflexivity x
 
 {-@
 assume extract :: x:a -> y:a -> Equal a {x} {y} -> {x == y}
@@ -154,10 +153,17 @@ inBounds i l = 0 <= i && i < l
 kleisli_proto :: (m b -> (b -> m c) -> m c) -> (a -> m b) -> (b -> m c) -> (a -> m c)
 kleisli_proto b k1 k2 a = b (k1 a) k2
 
-class Array (m :: * -> *) where
+{-@ reflect positive @-}
+positive :: Int -> Bool
+positive x = 0 <= x
 
+{-@ reflect lengthArray @-}
+lengthArray :: Ix
+lengthArray = 10
+
+class Array (m :: * -> *) where
   -- monad fields
-  
+
   {-@ pureArray :: forall a. a -> m a @-}
   pureArray :: forall a. a -> m a
 
@@ -183,40 +189,19 @@ class Array (m :: * -> *) where
 
   -- array fields
 
-  {-@ lengthArray :: m Ix @-}
-  lengthArray :: m Ix
+  {-@
+  readArray :: i:Ix -> m El @-}
+  readArray :: Ix -> m El
 
   {-@
-  lengthArray_positive ::
-    Equal (m Bool)
-      {bindArray lengthArray (pureArray . (<= 0))}
-      {pureArray True}
+  writeArray :: i:Ix -> El -> m Unit
   @-}
-  lengthArray_positive :: Equal (m Bool)
+  writeArray :: Ix -> El -> m Unit
 
-  {-@
-  readArray ::
-    i:Ix ->
-    Equal (m Bool)
-      {bindArray lengthArray (pureArray . inBounds i)}
-      {pureArray True} ->
-    m El
-  @-}
-  readArray :: Ix -> Equal (m Bool) -> m El
+-- array laws
+-- TODO
 
-  {-@
-  writeArray ::
-    i:Ix ->
-    Equal (m Bool)
-      {bindArray lengthArray (pureArray . inBounds i)}
-      {pureArray True} ->
-    El ->
-    m Unit
-  @-}
-  writeArray :: Ix -> Equal (m Bool) -> El -> m Unit
-
-  -- array laws
-  -- TODO
+-- synthetic monad functions
 
 {-@ reflect fmapArray @-}
 fmapArray :: forall m a b. Array m => (a -> b) -> m a -> m b
@@ -230,43 +215,17 @@ seqArray ma mb = bindArray ma (\_ -> mb)
 kleisliArray :: forall m a b c. Array m => (a -> m b) -> (b -> m c) -> (a -> m c)
 kleisliArray k1 k2 a = bindArray (k1 a) k2
 
-{-@
-type InBounds m I = Equal (m Bool) {bindArray lengthArray (pureArray . inBounds I)} {pureArray True}
-@-}
-type InBounds m = Equal (m Bool)
-
-{-@
-assumeInBounds :: Array m => i:Ix -> InBounds m {i}
-@-}
-assumeInBounds :: Array m => Ix -> InBounds m
-assumeInBounds i =
-  assumeEqual
-    (bindArray lengthArray (pureArray . inBounds i))
-    (pureArray True)
-
-{-@
-swapArray :: Array m => i:Ix -> InBounds m {i} -> j:Ix -> InBounds m {j} -> m Unit
-@-}
-swapArray :: Array m => Ix -> InBounds m -> Ix -> InBounds m -> m Unit
-swapArray i iIB j jIB =
-  bindArray
-    (readArray i iIB)
-    ( \x ->
-        bindArray
-          (readArray j jIB)
-          ( \y ->
-              seqArray
-                (writeArray i iIB y)
-                (writeArray j jIB x)
-          )
-    )
+-- congruency over monad terms
 
 {-@
 congruency_bindArray_m :: forall m a b. Array m => m1:m a -> m2:m a -> k:(a -> m b) -> Equal (m a) {m1} {m2} -> Equal (m b) {bindArray m1 k} {bindArray m2 k}
 @-}
 congruency_bindArray_m :: forall m a b. Array m => m a -> m a -> (a -> m b) -> Equal (m a) -> Equal (m b)
-congruency_bindArray_m m1 m2 k eq = 
-  contractability (bindArray m1) (bindArray m2) k
+congruency_bindArray_m m1 m2 k eq =
+  contractability
+    (bindArray m1)
+    (bindArray m2)
+    k
     (congruency bindArray m1 m2 eq)
 
 {-@
@@ -275,57 +234,67 @@ congruency_bindArray_k :: forall m a b. Array m => m:m a -> k1:(a -> m b) -> k2:
 congruency_bindArray_k :: forall m a b. Array m => m a -> (a -> m b) -> (a -> m b) -> Equal (a -> m b) -> Equal (m b)
 congruency_bindArray_k m k1 k2 eq = congruency (bindArray m) k1 k2 eq
 
-{-@ automatic-instances checkIndex @-}
-{-@
-checkIndex :: Array m => l:Ix -> Equal (m Ix) {lengthArray} {pureArray l} -> i:{i:Ix | inBounds i l} -> InBounds m {i}
-@-}
-checkIndex :: Array m => Ix -> Equal (m Ix) -> Ix -> InBounds m
-checkIndex l eq i = 
-  transitivity
-    (bindArray lengthArray (pureArray . inBounds i))
-    (bindArray (pureArray l) (pureArray . inBounds i))
-    (pureArray True)
-    (congruency_bindArray_m lengthArray (pureArray l) (pureArray . inBounds i) eq)
-    (transitivity
-      (bindArray (pureArray l) (pureArray . inBounds i))
-      ((pureArray . inBounds i) l)
-      (pureArray True)
-      (pureBindArray l (pureArray . inBounds i))
-      (reflexivity (pureArray (inBounds i l)))
-    )
+-- swapArray
+-- swaps two elements of an array
 
-{-@ automatic-instances countArray @-}
-countArray :: forall m. Array m => El -> m Int
-countArray e =
-  bindArray
-    lengthArray
-    ( \l ->
-        countArray_go
-          e
-          (l - 1)
-          (checkIndex l (assumeEqual (pureArray l) lengthArray) (l - 1 `by` assume (inBounds l (l - 1))))
-    )
-
--- {-@ reflect countArray_go @-}
 {-@
-countArray_go :: forall m. Array m => El -> i:Ix -> InBounds m {i} -> m Int / [i]
+swapArray :: Array m => i:Ix -> j:Ix -> m Unit
 @-}
-countArray_go :: forall m. Array m => El -> Ix -> InBounds m -> m Int
-countArray_go e i iIB =
+swapArray :: Array m => Ix -> Ix -> m Unit
+swapArray i j =
   bindArray
-    (readArray i iIB)
+    (readArray i)
     ( \x ->
         bindArray
-          lengthArray
-          ( \l ->
-              if 0 < i
-                then
-                  if e == x
-                    then fmapArray (1 +) (countArray_go e (dec i) undefined)
-                    else countArray_go e (dec i) undefined
-                else
-                  if e == x
-                    then pureArray 1
-                    else pureArray 0
+          (readArray j)
+          ( \y ->
+              seqArray
+                (writeArray i y)
+                (writeArray j x)
           )
     )
+
+countArray :: forall m. Array m => El -> m Int
+countArray e = countArray_go e (lengthArray - 1)
+
+{-@
+countArray_go :: Array m => e:El -> i:Ix -> m Int / [i]
+@-}
+countArray_go :: Array m => El -> Ix -> m Int
+countArray_go e i = undefined
+
+-- {-@ automatic-instances countArray @-}
+-- countArray :: forall m. Array m => El -> m Int
+-- countArray e =
+--   bindArray
+--     lengthArrayM
+--     ( \l ->
+--         countArray_go
+--           e
+--           (l - 1)
+--           (checkIndex l (assumeEqual (pureArray l) lengthArrayM) (l - 1 `by` assume (inBounds l (l - 1))))
+--     )
+
+-- -- {-@ reflect countArray_go @-}
+-- {-@
+-- countArray_go :: forall m. Array m => El -> i:Ix -> InBounds m {i} -> m Int / [i]
+-- @-}
+-- countArray_go :: forall m. Array m => El -> Ix -> InBounds m -> m Int
+-- countArray_go e i iIB =
+--   bindArray
+--     (readArray i iIB)
+--     ( \x ->
+--         bindArray
+--           lengthArrayM
+--           ( \l ->
+--               if 0 < i
+--                 then
+--                   if e == x
+--                     then fmapArray (1 +) (countArray_go e (dec i) undefined)
+--                     else countArray_go e (dec i) undefined
+--                 else
+--                   if e == x
+--                     then pureArray 1
+--                     else pureArray 0
+--           )
+--     )
