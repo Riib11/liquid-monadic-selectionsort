@@ -3,13 +3,14 @@ resolver:
   url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/18/15.yaml
 
 resolver: lts-18.14
-# compiler: ghc-8.10.7
+compiler: ghc-8.10.7
 
 packages:
   - .
 
 extra-deps:
   - liquidhaskell-0.8.10.7@sha256:dd613a6a9c9c8eaa39015574955580415800e81f6f2c2b9ee3332608dce20831,15895
+  - liquid-base-4.15.0.0@sha256:a28cc9217966f18ef02f9b7e7c060f7682187e2c37ca20ce80088cc28860eb35,9129
   - liquid-fixpoint-0.8.10.7@sha256:dee303753cf1adc8b071aa314179e26e784f3832d17b8317b114a0ac07818800,7980
   - optparse-applicative-0.15.1.0@sha256:29ff6146aabf54d46c4c8788e8d1eadaea27c94f6d360c690c5f6c93dac4b07e,4810
   - recursion-schemes-5.2.2@sha256:4d346a1ac4a31226b2eceb15bd815a4aa5cec3042f069322095ba2ce32224e50,3684
