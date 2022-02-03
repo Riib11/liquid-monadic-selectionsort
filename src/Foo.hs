@@ -1,13 +1,9 @@
-{-# LANGUAGE KindSignatures #-}
-
-{-@ LIQUID "--typeclass" @-}
-
 module Foo where
 
-{-@ inline impossible @-}
-{-@ impossible :: {_:a | False} -> a @-}
-impossible :: a -> a
-impossible a = a
+-- {-@ inline impossible @-}
+-- {-@ impossible :: {_:a | False} -> a @-}
+-- impossible :: a -> a
+-- impossible a = a
 
 -- class Array (m :: * -> *) where
 --   {-@

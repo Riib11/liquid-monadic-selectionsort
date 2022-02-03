@@ -27,17 +27,12 @@ library
   exposed-modules:
       Bot
       Foo
-      Imperative.Array
-      Imperative.ArrayOld
       Proof
       QuickSort.Array
-      QuickSort.ArrayProto
-      Refined.Control.Monad
       Refined.Data.Bool
       Refined.Data.Int
       Refined.Data.List
       Refined.Data.Unit
-      Refined.Data.Vec
       Refined.Function
       Relation.Equality.Leibniz
       Relation.Equality.Prop
@@ -53,8 +48,8 @@ library
       FlexibleInstances
       UndecidableInstances
       MultiParamTypeClasses
-  ghc-options: -fplugin=LiquidHaskell -fplugin-opt=LiquidHaskell:--reflection -fplugin-opt=LiquidHaskell:--ple-local -fplugin-opt=LiquidHaskell:--short-names -fplugin-opt=LiquidHaskell:--prune-unsorted
+  ghc-options: -fplugin=LiquidHaskell
   build-depends:
-      liquid-base ==4.14.3.0
-    , liquidhaskell ==0.8.10.7.1
+      base ==4.14.3.0
+    , liquidhaskell ==0.8.10.7
   default-language: Haskell2010
