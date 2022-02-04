@@ -37,10 +37,10 @@ extensionality :: (a -> b) -> (a -> b) -> (a -> Equal b) -> Equal (a -> b)
 extensionality f g eq pr = trivial
 
 {-@
-assume contractability :: f:(a -> b) -> g:(a -> b) -> Equal (a -> b) {f} {g} -> x:a -> Equal b {f x} {g x}
+assume congruency :: f:(a -> b) -> g:(a -> b) -> Equal (a -> b) {f} {g} -> x:a -> Equal b {f x} {g x}
 @-}
-contractability :: (a -> b) -> (a -> b) -> Equal (a -> b) -> a -> Equal b
-contractability f g eq a pr = trivial
+congruency :: (a -> b) -> (a -> b) -> Equal (a -> b) -> a -> Equal b
+congruency f g eq a pr = trivial
 
 {-@
 inject :: forall a. x:a -> y:{y:a | x = y} -> Equal a {x} {y}

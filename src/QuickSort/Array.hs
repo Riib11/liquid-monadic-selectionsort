@@ -168,6 +168,20 @@ kleisliA _A k1 k2 a = bindA _A (k1 a) k2
 inBoundsA :: Array m -> Int -> Bool
 inBoundsA _A i = 0 <= i && i < lengthA _A
 
+-- equalities
+-- convenient equalities over Array
+
+{-@
+bindA_pureA_eq_seqA_pureA_unit ::
+  _A:Array m ->
+  m:m Unit ->
+  Equal (m Unit)
+    {bindA _A m (pureA _A)}
+    {seqA _A m (pureA _A unit)}
+@-}
+bindA_pureA_eq_seqA_pureA_unit :: Array m -> m Unit -> Equal (m Unit)
+bindA_pureA_eq_seqA_pureA_unit = undefined
+
 -- permutationA
 -- a permutationA is a sequence of swaps
 
@@ -201,14 +215,3 @@ permutationA_swapA _A i j =
         (bindPureA _A (swapA _A i j))
     )
     (bindA_pureA_eq_seqA_pureA_unit _A (swapA _A i j))
-
-{-@
-bindA_pureA_eq_seqA_pureA_unit ::
-  _A:Array m ->
-  m:m Unit ->
-  Equal (m Unit)
-    {bindA _A m (pureA _A)}
-    {seqA _A m (pureA _A unit)}
-@-}
-bindA_pureA_eq_seqA_pureA_unit :: Array m -> m Unit -> Equal (m Unit)
-bindA_pureA_eq_seqA_pureA_unit = undefined
