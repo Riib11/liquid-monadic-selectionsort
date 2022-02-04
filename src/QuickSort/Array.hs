@@ -149,13 +149,13 @@ data Array m = Array
 -- not sure how to prove these, but are definitely true
 
 {-@
-assume seqA_readA :: iA:Array m -> i:{Int | inBoundsA iA i} -> m:m a ->
+seqA_readA :: iA:Array m -> i:{Int | inBoundsA iA i} -> m:m a ->
   Equal (m a)
     {seqA iA (readA iA i) m}
     {m}
 @-}
 seqA_readA :: Array m -> Int -> m a -> Equal (m a)
-seqA_readA iA i m = undefined
+seqA_readA iA i m = undefined -- ! ASSUMPTION
 
 -- synthetic monad functions
 

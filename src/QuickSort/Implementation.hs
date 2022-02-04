@@ -1,4 +1,16 @@
-module QuickSort.QuickSort where
+{-@ LIQUID "--reflection" @-}
+{-@ LIQUID "--no-termination" @-}
+{-@ LIQUID "--ple-local" @-}
+{-@ LIQUID "--short-names" @-}
+
+module QuickSort.Implementation where
+
+import Proof
+import QuickSort.Array
+import Refined.Data.Int
+import Refined.Data.Unit
+import Refined.Function
+import Relation.Equality.Leibniz
 
 -- -- quicksort
 
