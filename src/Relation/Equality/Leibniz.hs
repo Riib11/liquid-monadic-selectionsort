@@ -15,7 +15,7 @@ type Equal a = (a -> Bool) -> Proof
 reflexivity :: x:a -> Equal a {x} {x}
 @-}
 reflexivity :: a -> Equal a
-reflexivity a pr = trivial
+reflexivity a prop = trivial
 
 {-@
 symmetry :: x:a -> y:a -> Equal a {x} {y} -> Equal a {y} {x}
@@ -34,13 +34,20 @@ transitivity x y z eq_x_y eq_y_z prop =
 assume extensionality :: f:(a -> b) -> g:(a -> b) -> (x:a -> Equal b {f x} {g x}) -> Equal (a -> b) {f} {g}
 @-}
 extensionality :: (a -> b) -> (a -> b) -> (a -> Equal b) -> Equal (a -> b)
-extensionality f g eq pr = trivial
+extensionality f g eq prop = trivial
 
 {-@
-assume congruency :: f:(a -> b) -> g:(a -> b) -> Equal (a -> b) {f} {g} -> x:a -> Equal b {f x} {g x}
+congruency :: f:(a -> b) -> x:a -> y:a -> Equal a {x} {y} -> Equal b {f x} {f y}
 @-}
-congruency :: (a -> b) -> (a -> b) -> Equal (a -> b) -> a -> Equal b
-congruency f g eq a pr = trivial
+congruency :: (a -> b) -> a -> a -> Equal a -> Equal b
+congruency x y f eq_x_y = undefined
+
+-- TODO: should be provable in terms of congruency
+{-@
+reframe :: f:(a -> b) -> g:(a -> b) -> x:a -> Equal (a -> b) {f} {g} -> Equal b {f x} {g x}
+@-}
+reframe :: (a -> b) -> (a -> b) -> a -> Equal (a -> b) -> Equal b
+reframe f g a eq prop = undefined
 
 {-@
 inject :: forall a. x:a -> y:{y:a | x = y} -> Equal a {x} {y}

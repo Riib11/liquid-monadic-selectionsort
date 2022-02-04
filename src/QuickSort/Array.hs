@@ -151,47 +151,103 @@ data Array m = Array
 
 {-@ inline fmapA @-}
 fmapA :: forall m a b. Array m -> (a -> b) -> m a -> m b
-fmapA _A f ma = bindA _A ma (pureA _A . f)
+fmapA iA f ma = bindA iA ma (pureA iA . f)
 
 {-@ inline seqA @-}
 seqA :: forall m a b. Array m -> m a -> m b -> m b
-seqA _A ma mb = bindA _A ma (constant mb)
+seqA iA ma mb = bindA iA ma (constant mb)
 
 {-@ inline kleisliA @-}
 kleisliA :: forall m a b c. Array m -> (a -> m b) -> (b -> m c) -> (a -> m c)
-kleisliA _A k1 k2 a = bindA _A (k1 a) k2
+kleisliA iA k1 k2 a = bindA iA (k1 a) k2
 
 -- inboundsA
 -- property that an index is inbounds of an array
 
 {-@ inline inBoundsA @-}
 inBoundsA :: Array m -> Int -> Bool
-inBoundsA _A i = 0 <= i && i < lengthA _A
+inBoundsA iA i = 0 <= i && i < lengthA iA
 
 -- equalities
 -- convenient equalities over Array
 
 {-@
+congruency_bindA_m ::
+  forall m a b.
+  iA:Array m ->
+  m1:m a -> m2:m a ->
+  k:(a -> m b) ->
+  Equal (m a) {m1} {m2} ->
+  Equal (m b) {bindA iA m1 k} {bindA iA m2 k}
+@-}
+congruency_bindA_m ::
+  forall m a b.
+  Array m ->
+  m a ->
+  m a ->
+  (a -> m b) ->
+  Equal (m a) ->
+  Equal (m b)
+congruency_bindA_m iA m1 m2 k eq_m1_m2 =
+  (reframe (bindA iA m1) (bindA iA m2) k)
+    (congruency (bindA iA) m1 m2 eq_m1_m2)
+
+{-@
+congruency_bindA_k ::
+  forall m a b.
+  iA:Array m ->
+  m:m a ->
+  k1:(a -> m b) -> k2:(a -> m b) ->
+  Equal (a -> m b) {k1} {k2} ->
+  Equal (m b) {bindA iA m k1} {bindA iA m k2}
+@-}
+congruency_bindA_k ::
+  forall m a b.
+  Array m ->
+  m a ->
+  (a -> m b) ->
+  (a -> m b) ->
+  Equal (a -> m b) ->
+  Equal (m b)
+congruency_bindA_k iA m k1 k2 eq_k1_k2 =
+  congruency (bindA iA m) k1 k2 eq_k1_k2
+
+{-@
 bindA_pureA_eq_seqA_pureA_unit ::
-  _A:Array m ->
+  iA:Array m ->
   m:m Unit ->
   Equal (m Unit)
-    {bindA _A m (pureA _A)}
-    {seqA _A m (pureA _A unit)}
+    {bindA iA m (pureA iA)}
+    {seqA iA m (pureA iA unit)}
 @-}
 bindA_pureA_eq_seqA_pureA_unit :: Array m -> m Unit -> Equal (m Unit)
-bindA_pureA_eq_seqA_pureA_unit = undefined
+bindA_pureA_eq_seqA_pureA_unit iA m =
+  (congruency_bindA_k iA m (pureA iA) (constant (pureA iA unit)))
+    ( (extensionality (pureA iA) (constant (pureA iA unit)))
+        (bindA_pureA_eq_seqA_pureA_unit_aux iA)
+    )
+
+{-@ automatic-instances bindA_pureA_eq_seqA_pureA_unit_aux @-}
+{-@
+bindA_pureA_eq_seqA_pureA_unit_aux ::
+  iA:Array m -> x:Unit ->
+  Equal (m Unit)
+    {pureA iA x}
+    {constant (pureA iA unit) x}
+@-}
+bindA_pureA_eq_seqA_pureA_unit_aux :: Array m -> Unit -> Equal (m Unit)
+bindA_pureA_eq_seqA_pureA_unit_aux iA () = reflexivity (pureA iA ())
 
 -- permutationA
 -- a permutationA is a sequence of swaps
 
 {-@ reflect permutationA @-}
 {-@
-permutationA :: _A:Array m -> [({i:Int | inBoundsA _A i}, {j:Int | inBoundsA _A j})] -> m Unit
+permutationA :: iA:Array m -> [({i:Int | inBoundsA iA i}, {j:Int | inBoundsA iA j})] -> m Unit
 @-}
 permutationA :: Array m -> [(Int, Int)] -> m Unit
-permutationA _A [] = pureA _A unit
-permutationA _A ((i, j) : ijs) = seqA _A (swapA _A i j) (permutationA _A ijs)
+permutationA iA [] = pureA iA unit
+permutationA iA ((i, j) : ijs) = seqA iA (swapA iA i j) (permutationA iA ijs)
 
 {-@
 type Permutation m A M IJ = Equal (m Unit) {M} {permutationA A IJ}
@@ -200,18 +256,18 @@ type Permutation m = Equal (m Unit)
 
 {-@ automatic-instances permutationA_swapA @-}
 {-@
-permutationA_swapA :: _A:Array m -> i:{Int | inBoundsA _A i} -> j:{Int | inBoundsA _A j} ->
-  Permutation m {_A} {swapA _A i j} {[(i, j)]}
+permutationA_swapA :: iA:Array m -> i:{Int | inBoundsA iA i} -> j:{Int | inBoundsA iA j} ->
+  Permutation m {iA} {swapA iA i j} {[(i, j)]}
 @-}
 permutationA_swapA :: Array m -> Int -> Int -> Permutation m
-permutationA_swapA _A i j =
+permutationA_swapA iA i j =
   transitivity
-    (swapA _A i j)
-    (bindA _A (swapA _A i j) (pureA _A))
-    (permutationA _A [(i, j)])
+    (swapA iA i j)
+    (bindA iA (swapA iA i j) (pureA iA))
+    (permutationA iA [(i, j)])
     ( symmetry
-        (bindA _A (swapA _A i j) (pureA _A))
-        (swapA _A i j)
-        (bindPureA _A (swapA _A i j))
+        (bindA iA (swapA iA i j) (pureA iA))
+        (swapA iA i j)
+        (bindPureA iA (swapA iA i j))
     )
-    (bindA_pureA_eq_seqA_pureA_unit _A (swapA _A i j))
+    (bindA_pureA_eq_seqA_pureA_unit iA (swapA iA i j))
