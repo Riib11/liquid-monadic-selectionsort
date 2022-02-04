@@ -25,25 +25,25 @@ kleisliA_proto b k1 k2 x = b (k1 x) k2
 seqA_proto :: (m a -> (a -> m b) -> m b) -> m a -> m b -> m b
 seqA_proto b m1 m2 = b m1 (constant m2)
 
-{-@ reflect readReadA_lhs @-}
-readReadA_lhs :: (m El -> (El -> m a) -> m a) -> (Int -> m El) -> Int -> (El -> El -> m a) -> m a
-readReadA_lhs b r i f = b (r i) (readReadA_lhs_aux1 b r i f)
+{-@ reflect readA_readA_lhs @-}
+readA_readA_lhs :: (m El -> (El -> m a) -> m a) -> (Int -> m El) -> Int -> (El -> El -> m a) -> m a
+readA_readA_lhs b r i f = b (r i) (readA_readA_lhs_aux1 b r i f)
 
-{-@ reflect readReadA_lhs_aux1 @-}
-readReadA_lhs_aux1 :: (m El -> (El -> m a) -> m a) -> (Int -> m El) -> Int -> (El -> El -> m a) -> El -> m a
-readReadA_lhs_aux1 b r i f x = b (r i) (readReadA_lhs_aux2 f x)
+{-@ reflect readA_readA_lhs_aux1 @-}
+readA_readA_lhs_aux1 :: (m El -> (El -> m a) -> m a) -> (Int -> m El) -> Int -> (El -> El -> m a) -> El -> m a
+readA_readA_lhs_aux1 b r i f x = b (r i) (readA_readA_lhs_aux2 f x)
 
-{-@ reflect readReadA_lhs_aux2 @-}
-readReadA_lhs_aux2 :: (El -> El -> m a) -> El -> El -> m a
-readReadA_lhs_aux2 f x y = f x y
+{-@ reflect readA_readA_lhs_aux2 @-}
+readA_readA_lhs_aux2 :: (El -> El -> m a) -> El -> El -> m a
+readA_readA_lhs_aux2 f x y = f x y
 
-{-@ reflect readReadA_rhs @-}
-readReadA_rhs :: (m El -> (El -> m a) -> m a) -> (Int -> m El) -> Int -> (El -> El -> m a) -> m a
-readReadA_rhs b r i f = b (r i) (readReadA_rhs_aux1 f)
+{-@ reflect readA_readA_rhs @-}
+readA_readA_rhs :: (m El -> (El -> m a) -> m a) -> (Int -> m El) -> Int -> (El -> El -> m a) -> m a
+readA_readA_rhs b r i f = b (r i) (readA_readA_rhs_aux1 f)
 
-{-@ reflect readReadA_rhs_aux1 @-}
-readReadA_rhs_aux1 :: (El -> El -> m a) -> El -> m a
-readReadA_rhs_aux1 f x = f x x
+{-@ reflect readA_readA_rhs_aux1 @-}
+readA_readA_rhs_aux1 :: (El -> El -> m a) -> El -> m a
+readA_readA_rhs_aux1 f x = f x x
 
 {-
 readWriteA :: i:Int ->
@@ -58,14 +58,14 @@ writeWriteA :: i:Int -> x:El -> y:El ->
   Equal (m Unit)
     {seqA_proto bindA (writeA i x) (writeA i y)}
     {writeA i y},
-readReadA :: forall a. i:Int -> f:(El -> El -> m a) ->
+readA_readA :: forall a. i:Int -> f:(El -> El -> m a) ->
   Equal (m a)
-    {readReadA_lhs bindA readA i f}
-    {readReadA_rhs bindA readA i f}
+    {readA_readA_lhs bindA readA i f}
+    {readA_readA_rhs bindA readA i f}
 -}
 
-{-@ reflect readSwapA_i_aux @-}
-readSwapA_i_aux ::
+{-@ reflect swapA_readA_i_aux @-}
+swapA_readA_i_aux ::
   (El -> m El) ->
   (m El -> (El -> m El) -> m El) ->
   (m Unit -> (Unit -> m El) -> m El) ->
@@ -74,11 +74,11 @@ readSwapA_i_aux ::
   Int ->
   Int ->
   m El
-readSwapA_i_aux p b1 b2 r s i j =
-  b1 (r j) (readSwapA_i_aux_aux p b2 s i j)
+swapA_readA_i_aux p b1 b2 r s i j =
+  b1 (r j) (swapA_readA_i_aux_aux p b2 s i j)
 
-{-@ reflect readSwapA_i_aux_aux @-}
-readSwapA_i_aux_aux ::
+{-@ reflect swapA_readA_i_aux_aux @-}
+swapA_readA_i_aux_aux ::
   (El -> m El) ->
   (m Unit -> (Unit -> m El) -> m El) ->
   (Int -> Int -> m Unit) ->
@@ -86,7 +86,7 @@ readSwapA_i_aux_aux ::
   Int ->
   El ->
   m El
-readSwapA_i_aux_aux p b s i j x =
+swapA_readA_i_aux_aux p b s i j x =
   seqA_proto b (s i j) (p x)
 
 {-@
@@ -94,11 +94,11 @@ data Array m = Array
   { pureA :: forall a. a -> m a,
     bindA :: forall a b. m a -> (a -> m b) -> m b,
 
-    pureBindA :: forall a b. a:a -> k:(a -> m b) ->
+    pureA_bindA :: forall a b. a:a -> k:(a -> m b) ->
       Equal (m b) {bindA (pureA a) k} {k a},
-    bindPureA :: forall a. m:m a ->
+    bindA_pureA :: forall a. m:m a ->
       Equal (m a) {bindA m pureA} {m},
-    assocA :: forall a b c. m:m a -> k1:(a -> m b) -> k2:(b -> m c) ->
+    bindA_bindA :: forall a b c. m:m a -> k1:(a -> m b) -> k2:(b -> m c) ->
       Equal (m c)
         {bindA (bindA m k1) k2}
         {bindA m (kleisliA_proto bindA k1 k2)},
@@ -109,27 +109,25 @@ data Array m = Array
     readA :: {i:Int | inBounds lengthA i} -> m El,
     swapA :: {i:Int | inBounds lengthA i} -> {j:Int | inBounds lengthA j} -> m Unit,
 
-    readSwapA_i :: {i:Int | inBounds lengthA i} -> {j:Int | inBounds lengthA j} ->
+    swapA_readA_i :: {i:Int | inBounds lengthA i} -> {j:Int | inBounds lengthA j} ->
       Equal (m El)
         {seqA_proto bindA (swapA i j) (readA i)}
-        {readSwapA_i_aux pureA bindA bindA readA swapA i j},
-    readReadA :: forall a. i:Int -> f:(El -> El -> m a) ->
+        {swapA_readA_i_aux pureA bindA bindA readA swapA i j},
+
+    readA_readA :: forall a. i:Int -> f:(El -> El -> m a) ->
       Equal (m a)
-        {readReadA_lhs bindA readA i f}
-        {readReadA_rhs bindA readA i f}
+        {readA_readA_lhs bindA readA i f}
+        {readA_readA_rhs bindA readA i f}
   }
 @-}
-{-
-
--}
 data Array m = Array
   { -- monad fields
     pureA :: forall a. a -> m a,
     bindA :: forall a b. m a -> (a -> m b) -> m b,
     -- monad laws
-    pureBindA :: forall a b. a -> (a -> m b) -> Equal (m b),
-    bindPureA :: forall a. m a -> Equal (m a),
-    assocA :: forall a b c. m a -> (a -> m b) -> (b -> m c) -> Equal (m c),
+    pureA_bindA :: forall a b. a -> (a -> m b) -> Equal (m b),
+    bindA_pureA :: forall a. m a -> Equal (m a),
+    bindA_bindA :: forall a b c. m a -> (a -> m b) -> (b -> m c) -> Equal (m c),
     -- array length
     lengthA :: Int,
     positive_lengthA :: Proof,
@@ -137,15 +135,27 @@ data Array m = Array
     readA :: Int -> m El,
     swapA :: Int -> Int -> m Unit,
     -- array laws
-    readSwapA_i :: Int -> Int -> Equal (m El),
+    swapA_readA_i :: Int -> Int -> Equal (m El),
     -- readSwap_j :: Int -> Int -> Equal (m Unit),
 
     -- readWriteA :: Int -> Equal (m Unit),
     -- writeReadA :: Int -> El -> Equal (m El),
     -- writeWriteA :: Int -> El -> El -> Equal (m Unit),
 
-    readReadA :: forall a. Int -> (El -> El -> m a) -> Equal (m a)
+    readA_readA :: forall a. Int -> (El -> El -> m a) -> Equal (m a)
   }
+
+-- assumption
+-- not sure how to prove these, but are definitely true
+
+{-@
+assume seqA_readA :: iA:Array m -> i:{Int | inBoundsA iA i} -> m:m a ->
+  Equal (m a)
+    {seqA iA (readA iA i) m}
+    {m}
+@-}
+seqA_readA :: Array m -> Int -> m a -> Equal (m a)
+seqA_readA iA i m = undefined
 
 -- synthetic monad functions
 
@@ -250,7 +260,7 @@ permutationA iA [] = pureA iA unit
 permutationA iA ((i, j) : ijs) = seqA iA (swapA iA i j) (permutationA iA ijs)
 
 {-@
-type Permutation m A M IJ = Equal (m Unit) {M} {permutationA A IJ}
+type Permutation m A M IJ = Equal (m Unit) {seqA A M (pureA A unit)} {permutationA A IJ}
 @-}
 type Permutation m = Equal (m Unit)
 
@@ -260,14 +270,13 @@ permutationA_swapA :: iA:Array m -> i:{Int | inBoundsA iA i} -> j:{Int | inBound
   Permutation m {iA} {swapA iA i j} {[(i, j)]}
 @-}
 permutationA_swapA :: Array m -> Int -> Int -> Permutation m
-permutationA_swapA iA i j =
-  transitivity
-    (swapA iA i j)
-    (bindA iA (swapA iA i j) (pureA iA))
-    (permutationA iA [(i, j)])
-    ( symmetry
-        (bindA iA (swapA iA i j) (pureA iA))
-        (swapA iA i j)
-        (bindPureA iA (swapA iA i j))
-    )
-    (bindA_pureA_eq_seqA_pureA_unit iA (swapA iA i j))
+permutationA_swapA iA i j = reflexivity (seqA iA (swapA iA i j) (pureA iA unit))
+
+{-@ automatic-instances permutationA_readA @-}
+{-@
+permutationA_readA :: iA:Array m -> i:{Int | inBoundsA iA i} ->
+  Permutation m {iA} {readA iA i} {[]}
+@-}
+permutationA_readA :: Array m -> Int -> Permutation m
+permutationA_readA iA i =
+  seqA_readA iA i (pureA iA unit)
