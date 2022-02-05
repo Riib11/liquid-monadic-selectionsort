@@ -12,93 +12,92 @@ import Refined.Data.Unit
 import Refined.Function
 import Relation.Equality.Leibniz
 
--- -- quicksort
+-- quicksort
 
--- quicksort :: Array m -> m Unit
--- quicksort _A =
---   if lengthArray _A <= 0
---     then pureArray _A unit
---     else quicksort_go _A 0 (lengthArray _A - 1)
+quicksort :: Array m -> m Unit
+quicksort iA =
+  if lengthA iA <= 0
+    then pureA iA unit
+    else quicksort_go iA 0 (lengthA iA - 1)
 
--- {-@
--- quicksort_go :: _A:Array m -> i:Ix {_A} -> {j:Ix {_A} | i <= j} -> m Unit
--- @-}
--- quicksort_go :: Array m -> Ix -> Ix -> m Unit
--- quicksort_go _A i j =
---   (bindArray _A)
---     (partition _A i i i j)
---     (quicksort_go_aux _A i j)
+{-@
+quicksort_go :: iA:Array m -> i:{Ix | inBoundsA iA i} -> j:{Ix | inBoundsA iA j && i <= j} -> m Unit
+@-}
+quicksort_go :: Array m -> Ix -> Ix -> m Unit
+quicksort_go iA i j =
+  (bindA iA)
+    (partition iA i i i j)
+    (quicksort_go_aux iA i j)
 
--- {-@
--- quicksort_go_aux :: _A:Array m -> i:Ix {_A} -> j:Ix {_A} -> iP:Ix {_A} -> m Unit
--- @-}
--- quicksort_go_aux :: Array m -> Ix -> Ix -> Ix -> m Unit
--- quicksort_go_aux _A i j iP =
---   (seqArray _A)
---     ( if 0 <= sub1 iP - i && sub1 iP - i < j - i && inBoundsArray _A (sub1 iP)
---         then quicksort_go _A i (sub1 iP)
---         else pureArray _A unit
---     )
---     ( if 0 <= j - add1 iP && j - add1 iP < j - i && inBoundsArray _A (add1 iP)
---         then quicksort_go _A (add1 iP) j
---         else pureArray _A unit
---     )
+{-@
+quicksort_go_aux :: iA:Array m -> i:{Ix | inBoundsA iA i} -> j:{Ix | inBoundsA iA j} -> iP:Ix -> m Unit
+@-}
+quicksort_go_aux :: Array m -> Ix -> Ix -> Ix -> m Unit
+quicksort_go_aux iA i j iP =
+  (seqA iA)
+    ( if 0 <= sub1 iP - i && sub1 iP - i < j - i && inBoundsA iA (sub1 iP)
+        then quicksort_go iA i (sub1 iP)
+        else pureA iA unit
+    )
+    ( if 0 <= j - add1 iP && j - add1 iP < j - i && inBoundsA iA (add1 iP)
+        then quicksort_go iA (add1 iP) j
+        else pureA iA unit
+    )
 
--- {-@ automatic-instances partition @-}
--- {-@
--- assume partition ::
---   _A:Array m ->
---   iLf:Ix {_A} ->
---   iLo:{Int | 0 <= iLo && iLo < lengthArray _A && iLf <= iLo} ->
---   iHi:{Ix {A_} | iLf <= iHi && iHi <= iLo} ->
---   iP:{Ix {_A} | iLo <= iP} ->
---   m ({iP':Ix {_A} | iLf <= iP' && iP' <= iP})
--- @-}
--- partition :: Array m -> Ix -> Ix -> Ix -> Ix -> m Ix
--- partition _A iLf iLo iHi iP =
---   if iLo < iP
---     then
---       (bindArray _A)
---         (readArray _A iLo)
---         (partition_aux1 _A iLf iLo iHi iP)
---     else
---       (seqArray _A)
---         (swapArray _A iHi iP)
---         (pureArray _A iHi)
---         `by` undefined
+{-@ automatic-instances partition @-}
+{-@
+partition ::
+  iA:Array m ->
+  iLf:{Ix | inBoundsA iA iLf} ->
+  iLo:{Ix | inBoundsA iA iLo && 0 <= iLo && iLo < lengthA iA && iLf <= iLo} ->
+  iHi:{Ix | inBoundsA iA iHi && iLf <= iHi && iHi <= iLo} ->
+  iP:{Ix | inBoundsA iA iP && iLo <= iP} ->
+  m ({iP':Ix | inBoundsA iA iP' && iLf <= iP' && iP' <= iP})
+@-}
+partition :: Array m -> Ix -> Ix -> Ix -> Ix -> m Ix
+partition iA iLf iLo iHi iP =
+  if iLo < iP
+    then
+      (bindA iA)
+        (readA iA iLo)
+        (partition_aux1 iA iLf iLo iHi iP)
+    else
+      (seqA iA)
+        (swapA iA iHi iP)
+        (pureA iA (iHi `by` assume (inBoundsA iA iHi && iLf <= iHi && iHi <= iP)))
 
--- {-@
--- partition_aux1 ::
---   _A:Array m ->
---   iLf:Ix {_A} ->
---   iLo:{iLo:Ix {_A} | iLf <= iLo} ->
---   iHi:{iHi:Ix {A_} | iLf <= iHi && iHi <= iLo} ->
---   iP:{iP:Ix {_A} | iLo <= iP} ->
---   lo:El ->
---   m ({iP':Ix {_A} | iLf <= iP' && iP' <= iP})
--- @-}
--- partition_aux1 :: Array m -> Ix -> Ix -> Ix -> Ix -> El -> m Ix
--- partition_aux1 _A iLf iLo iHi iP lo =
---   (bindArray _A)
---     (readArray _A iP)
---     (partition_aux2 _A iLf iLo iHi iP lo)
+{-@
+partition_aux1 ::
+  iA:Array m ->
+  iLf:{Ix | inBoundsA iA iLf} ->
+  iLo:{Ix | inBoundsA iA iLo && iLf <= iLo} ->
+  iHi:{Ix | inBoundsA iA iHi && iLf <= iHi && iHi <= iLo} ->
+  iP:{Ix | inBoundsA iA iP && iLo <= iP} ->
+  lo:El ->
+  m ({iP':Ix | inBoundsA iA iP' && iLf <= iP' && iP' <= iP})
+@-}
+partition_aux1 :: Array m -> Ix -> Ix -> Ix -> Ix -> El -> m Ix
+partition_aux1 iA iLf iLo iHi iP lo =
+  (bindA iA)
+    (readA iA iP)
+    (partition_aux2 iA iLf iLo iHi iP lo)
 
--- {-@
--- partition_aux2 ::
---   _A:Array m ->
---   iLf:Ix {_A} ->
---   iLo:{iLo:Ix {_A} | iLf <= iLo} ->
---   iHi:{iHi:Ix {A_} | iLf <= iHi && iHi <= iLo} ->
---   iP:{iP:Ix {_A} | iLo <= iP} ->
---   lo:El ->
---   p:El ->
---   m ({iP':Ix {_A} | iLf <= iP' && iP' <= iP})
--- @-}
--- partition_aux2 :: Array m -> Ix -> Ix -> Ix -> Ix -> El -> El -> m Ix
--- partition_aux2 _A iLf iLo iHi iP lo p =
---   if lo > p
---     then partition _A iLf (add1 iLo) iHi iP
---     else
---       (seqArray _A)
---         (swapArray _A iLo iHi)
---         (partition _A iLf (add1 iLo) (add1 iHi) iP)
+{-@
+partition_aux2 ::
+  iA:Array m ->
+  iLf:Ix ->
+  iLo:{Ix | inBoundsA iA iLo && iLf <= iLo} ->
+  iHi:{Ix | inBoundsA iA iHi && iLf <= iHi && iHi <= iLo} ->
+  iP:{Ix | inBoundsA iA iP && iLo <= iP} ->
+  lo:El ->
+  p:El ->
+  m ({iP':Ix | inBoundsA iA iP' && iLf <= iP' && iP' <= iP})
+@-}
+partition_aux2 :: Array m -> Ix -> Ix -> Ix -> Ix -> El -> El -> m Ix
+partition_aux2 iA iLf iLo iHi iP lo p =
+  if lo > p
+    then partition iA iLf (add1 iLo) iHi iP
+    else
+      (seqA iA)
+        (swapA iA iLo iHi)
+        (partition iA iLf (add1 iLo) (add1 iHi) iP)

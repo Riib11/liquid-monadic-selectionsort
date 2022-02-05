@@ -171,12 +171,21 @@ seqA iA ma mb = bindA iA ma (constant mb)
 kleisliA :: forall m a b c. Array m -> (a -> m b) -> (b -> m c) -> (a -> m c)
 kleisliA iA k1 k2 a = bindA iA (k1 a) k2
 
+{-@
+test :: iA:Array m -> x:{Int | 0 <= x} -> m ({x:Int | 0 <= x})
+@-}
+test :: Array m -> Int -> m Int
+test iA x = seqA iA (pureA iA x) (pureA iA x)
+
 -- inboundsA
 -- property that an index is inbounds of an array
 
 {-@ inline inBoundsA @-}
 inBoundsA :: Array m -> Int -> Bool
 inBoundsA iA i = 0 <= i && i < lengthA iA
+
+{-@ type Ix = Int @-}
+type Ix = Int
 
 -- equalities
 -- convenient equalities over Array
@@ -253,9 +262,9 @@ bindA_pureA_eq_seqA_pureA_unit_aux iA () = reflexivity (pureA iA ())
 
 {-@ reflect permutationA @-}
 {-@
-permutationA :: iA:Array m -> [({i:Int | inBoundsA iA i}, {j:Int | inBoundsA iA j})] -> m Unit
+permutationA :: iA:Array m -> [({i:Ix | inBoundsA iA i}, {j:Ix | inBoundsA iA j})] -> m Unit
 @-}
-permutationA :: Array m -> [(Int, Int)] -> m Unit
+permutationA :: Array m -> [(Ix, Ix)] -> m Unit
 permutationA iA [] = pureA iA unit
 permutationA iA ((i, j) : ijs) = seqA iA (swapA iA i j) (permutationA iA ijs)
 
@@ -266,17 +275,17 @@ type Permutation m = Equal (m Unit)
 
 {-@ automatic-instances permutationA_swapA @-}
 {-@
-permutationA_swapA :: iA:Array m -> i:{Int | inBoundsA iA i} -> j:{Int | inBoundsA iA j} ->
+permutationA_swapA :: iA:Array m -> i:{Ix | inBoundsA iA i} -> j:{Ix | inBoundsA iA j} ->
   Permutation m {iA} {swapA iA i j} {[(i, j)]}
 @-}
-permutationA_swapA :: Array m -> Int -> Int -> Permutation m
+permutationA_swapA :: Array m -> Ix -> Ix -> Permutation m
 permutationA_swapA iA i j = reflexivity (seqA iA (swapA iA i j) (pureA iA unit))
 
 {-@ automatic-instances permutationA_readA @-}
 {-@
-permutationA_readA :: iA:Array m -> i:{Int | inBoundsA iA i} ->
+permutationA_readA :: iA:Array m -> i:{Ix | inBoundsA iA i} ->
   Permutation m {iA} {readA iA i} {[]}
 @-}
-permutationA_readA :: Array m -> Int -> Permutation m
+permutationA_readA :: Array m -> Ix -> Permutation m
 permutationA_readA iA i =
   seqA_readA iA i (pureA iA unit)
