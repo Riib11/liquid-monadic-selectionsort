@@ -89,6 +89,13 @@ swapA_readA_i_aux_aux ::
 swapA_readA_i_aux_aux p b s i j x =
   seqA_proto b (s i j) (p x)
 
+{-
+! ISSUE
+Since universally quantified type variables, LH won't infer refinements for
+them. This is a problem in the definition of quicksort which expects
+monadically-wrapped values that are refined (e.g. indices that are in-bounds).
+-}
+
 {-@
 data Array m = Array
   { pureA :: forall a. a -> m a,
