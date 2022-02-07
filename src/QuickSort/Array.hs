@@ -178,11 +178,11 @@ seqA iA ma mb = bindA iA ma (constant mb)
 kleisliA :: forall m a b c. Array m -> (a -> m b) -> (b -> m c) -> (a -> m c)
 kleisliA iA k1 k2 a = bindA iA (k1 a) k2
 
-{-@
-test :: iA:Array m -> x:{Int | 0 <= x} -> m ({x:Int | 0 <= x})
-@-}
-test :: Array m -> Int -> m Int
-test iA x = seqA iA (pureA iA x) (pureA iA x)
+-- {-@
+-- test :: iA:Array m -> x:{Int | 0 <= x} -> m ({x:Int | 0 <= x})
+-- @-}
+-- test :: Array m -> Int -> m Int
+-- test iA x = seqA iA (pureA iA x) (pureA iA x)
 
 -- inboundsA
 -- property that an index is inbounds of an array
